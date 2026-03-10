@@ -8,7 +8,6 @@ venv/
 .claude/
 CLAUDE.md
 .editorconfig
-src/
 tests/
 test-results/
 bundle.py
