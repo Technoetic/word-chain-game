@@ -16,7 +16,11 @@
 
 <br>
 
-<img src="assets/screenshot-main.png" width="400" alt="메인 화면"> <img src="assets/screenshot-play.png" width="400" alt="플레이 화면">
+<img src="assets/screenshot-main.png" width="700" alt="메인 화면">
+
+<br>
+
+<img src="assets/screenshot-play.png" width="700" alt="플레이 화면">
 
 ---
 
