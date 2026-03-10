@@ -30,70 +30,73 @@
 
 ## 게임 흐름
 
+```mermaid
+flowchart LR
+    subgraph Player ["🎙️ 플레이어"]
+        A["음성으로\n단어 입력"]
+    end
+
+    subgraph Timer ["⏱️ 타이머"]
+        B["15초"]
+    end
+
+    subgraph AI ["🤖 AI (Claude)"]
+        C["스트리밍\n한글자씩 응답"]
+    end
+
+    subgraph Validate1 ["검증"]
+        D["국립국어원\n사전 검증"]
+    end
+
+    subgraph Validate2 ["검증"]
+        E["국립국어원\n사전 검증"]
+    end
+
+    A -->|단어 제출| B --> C
+    A --> D
+    C --> E
+
+    style Player fill:#4fc3f7,color:#000
+    style AI fill:#ff7043,color:#000
+    style Timer fill:#ffd54f,color:#000
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   🎙️ 플레이어                              🤖 AI (Claude)       │
-│                                                                 │
-│   ┌───────────┐    15초 타이머    ┌───────────┐                 │
-│   │           │   ╔═══════════╗   │           │                 │
-│   │  음성으로  │──▶║  ⏱️ 15s   ║──▶│  스트리밍  │                │
-│   │  단어 입력 │   ╚═══════════╝   │  한글자씩  │                │
-│   │           │                   │  응답     │                 │
-│   └─────┬─────┘                   └─────┬─────┘                 │
-│         │                               │                       │
-│         ▼                               ▼                       │
-│   ┌───────────┐                   ┌───────────┐                 │
-│   │ 국립국어원 │                   │ 국립국어원 │                 │
-│   │ 사전 검증  │                   │ 사전 검증  │                 │
-│   └───────────┘                   └───────────┘                 │
-│                                                                 │
-│   ⚡ 한방 단어 사용 시 → AI가 짜증 리액션 생성!                    │
-│   ⏰ 15초 초과 시 → 패배                                         │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+
+> 💀 **한방 단어** 사용 시 → AI가 짜증 리액션 생성!
+> ⏰ **15초** 초과 시 → 패배
 
 <br>
 
 ## 시스템 아키텍처
 
-```
-                    ┌──────────────────────────────┐
-                    │     📱 브라우저 (Frontend)     │
-                    │                              │
-                    │  ┌────────┐  ┌────────────┐  │
-                    │  │ 🎙️ STT │  │ 🎮 게임 UI  │  │
-                    │  │Deepgram│  │ WebSocket   │  │
-                    │  └───┬────┘  └──────┬─────┘  │
-                    └──────┼──────────────┼────────┘
-                           │    wss://    │
-              ─────────────┼──────────────┼─────────────
-                           │              │
-                    ┌──────┼──────────────┼────────┐
-                    │      ▼              ▼        │
-                    │  ┌────────┐  ┌───────────┐   │
-                    │  │  STT   │  │ WebSocket │   │
-                    │  │ Proxy  │  │ Handlers  │   │
-                    │  └───┬────┘  └─────┬─────┘   │
-                    │      │             │         │
-                    │      │      ┌──────▼──────┐  │
-                    │      │      │ Game Engine │  │
-                    │      │      │             │  │
-                    │      │      │ ┌─────────┐ │  │
-                    │      │      │ │  State  │ │  │
-                    │      │      │ │  Rules  │ │  │
-                    │      │      │ │ Korean  │ │  │
-                    │      │      │ └─────────┘ │  │
-                    │      │      └──┬───────┬──┘  │
-                    │      │         │       │     │
-                    │  ┌───▼────┐ ┌──▼───┐ ┌─▼──┐  │
-                    │  │Deepgram│ │Claude│ │사전│  │
-                    │  │  API   │ │ API  │ │API │  │
-                    │  └────────┘ └──────┘ └────┘  │
-                    │                              │
-                    │    ⚡ FastAPI Backend         │
-                    └──────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Browser ["📱 브라우저 (Frontend)"]
+        STT_UI["🎙️ STT\nDeepgram"]
+        GAME_UI["🎮 게임 UI\nWebSocket"]
+    end
+
+    subgraph Server ["⚡ FastAPI Backend"]
+        STT_PROXY["STT Proxy"]
+        WS_HANDLER["WebSocket\nHandlers"]
+        ENGINE["Game Engine\n(State / Rules / Korean)"]
+    end
+
+    subgraph APIs ["External APIs"]
+        DEEPGRAM["Deepgram API"]
+        CLAUDE["Claude API"]
+        DICT["국립국어원\n사전 API"]
+    end
+
+    STT_UI -->|wss://| STT_PROXY
+    GAME_UI -->|wss://| WS_HANDLER
+    WS_HANDLER --> ENGINE
+    STT_PROXY --> DEEPGRAM
+    ENGINE --> CLAUDE
+    ENGINE --> DICT
+
+    style Browser fill:#e3f2fd,color:#000
+    style Server fill:#fff3e0,color:#000
+    style APIs fill:#fce4ec,color:#000
 ```
 
 <br>
@@ -102,150 +105,126 @@
 
 ### 🎙️ 음성 입력 (STT)
 
-```
-마이크 클릭 → PCM 오디오 캡처 → WebSocket → Deepgram Nova-2 → 텍스트 변환
-                                                    │
-                                              ┌─────▼─────┐
-                                              │ interim:   │
-                                              │ "사" → "사과" │
-                                              │ final: "사과" │
-                                              └───────────┘
+```mermaid
+flowchart LR
+    A["🎙️ 마이크 클릭"] --> B["PCM 오디오\n캡처"] --> C["WebSocket"] --> D["Deepgram\nNova-2"]
+    D --> E["interim:\n사 → 사과"]
+    D --> F["final:\n사과 ✅"]
+
+    style A fill:#4fc3f7,color:#000
+    style D fill:#66bb6a,color:#000
+    style F fill:#66bb6a,color:#000
 ```
 
 ### 🤖 AI 응답 (스트리밍)
 
-```
-사용자: "사과" ──▶ 마지막 글자: '과'
-                        │
-                        ▼
-              ┌─────────────────┐
-              │ Claude Haiku    │
-              │                 │
-              │  '과'로 시작하는  │
-              │   명사 생성      │──▶ "과" → "과" "일" → "과일" ✓
-              │                 │
-              └─────────────────┘
-                        │
-                  사전 검증 통과?
-                  ├─ ✅ Yes → 전송
-                  └─ ❌ No  → 재시도 (15초까지 반복)
+```mermaid
+flowchart TD
+    A["사용자: 사과"] --> B["마지막 글자: 과"]
+    B --> C["Claude Haiku\n'과'로 시작하는 명사 생성"]
+    C --> D["과 → 과일"]
+    D --> E{"사전 검증\n통과?"}
+    E -->|✅ Yes| F["전송"]
+    E -->|❌ No| G["재시도\n(15초까지 반복)"]
+    G --> C
+
+    style C fill:#ff7043,color:#000
+    style F fill:#66bb6a,color:#000
+    style G fill:#ef5350,color:#fff
 ```
 
 ### 💀 한방 단어 시스템
 
-```
-┌─────────────────────────────────────────────────┐
-│                                                 │
-│  한방 글자: 럽  릎  듐  륨  늄  늅  뀨  쀼  튐  │
-│                                                 │
-│  예시:                                          │
-│  ┌──────┐         ┌──────────────────┐          │
-│  │시 럽 │ ──────▶ │ AI: "아 ㅅㅂ..." │          │
-│  └──────┘         │  (LLM이 생성)    │          │
-│     ↑             └──────────────────┘          │
-│   '럽'으로                                      │
-│   시작하는 단어가                                │
-│   거의 없음!                                    │
-│                                                 │
-└─────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Killer ["한방 글자"]
+        K["럽 릎 듐 륨 늄 늅 뀨 쀼 튐"]
+    end
+
+    A["사용자: 시럽"] -->|끝글자 '럽'| B{"'럽'으로 시작하는\n단어가 거의 없음!"}
+    B --> C["🤖 AI: 아 ㅅㅂ...\n(LLM이 생성)"]
+
+    style Killer fill:#ef5350,color:#fff
+    style C fill:#ff7043,color:#000
 ```
 
 <br>
 
 ## 메시지 프로토콜 (WebSocket)
 
-```
-  📱 Client                              🖥️ Server
-     │                                      │
-     │──── game_start {difficulty} ────────▶│
-     │◀─── game_started {session_id} ──────│
-     │                                      │
-     │──── word_submit {word} ─────────────▶│
-     │◀─── word_result {valid, killer} ────│
-     │                                      │
-     │    [한방 단어인 경우]                  │
-     │◀─── ai_reaction {START} ────────────│
-     │◀─── ai_reaction {"아"} ─────────────│
-     │◀─── ai_reaction {"ㅅㅂ"} ───────────│
-     │◀─── ai_reaction {END} ──────────────│
-     │                                      │
-     │◀─── llm_typing {START} ─────────────│
-     │◀─── llm_typing {"과"} ──────────────│
-     │◀─── llm_typing {"일"} ──────────────│
-     │◀─── llm_complete {"과일"} ──────────│
-     │                                      │
-     │     ... 반복 ...                      │
-     │                                      │
-     │◀─── game_over {winner, reason} ─────│
-     │                                      │
+```mermaid
+sequenceDiagram
+    participant C as 📱 Client
+    participant S as 🖥️ Server
+
+    C->>S: game_start {difficulty}
+    S->>C: game_started {session_id}
+
+    C->>S: word_submit {word}
+    S->>C: word_result {valid, killer}
+
+    rect rgb(255, 235, 238)
+        Note over C,S: 한방 단어인 경우
+        S->>C: ai_reaction {START}
+        S->>C: ai_reaction {"아"}
+        S->>C: ai_reaction {"ㅅㅂ"}
+        S->>C: ai_reaction {END}
+    end
+
+    S->>C: llm_typing {START}
+    S->>C: llm_typing {"과"}
+    S->>C: llm_typing {"일"}
+    S->>C: llm_complete {"과일"}
+
+    Note over C,S: ... 반복 ...
+
+    S->>C: game_over {winner, reason}
 ```
 
 <br>
 
 ## 단어 검증 파이프라인
 
-```
-입력: "사과"
-   │
-   ▼
-┌──────────────┐    ❌
-│ 2글자 이상?  │──────▶ 거부
-└──────┬───────┘
-       │ ✅
-       ▼
-┌──────────────┐    ❌
-│ 이미 사용?   │──────▶ 거부
-└──────┬───────┘
-       │ ✅
-       ▼
-┌──────────────┐    ❌
-│ 끝말잇기     │──────▶ 거부
-│ 규칙 충족?   │
-│ (두음법칙)   │
-└──────┬───────┘
-       │ ✅
-       ▼
-┌──────────────┐    ┌──────────┐
-│  LRU 캐시    │───▶│ 캐시 HIT │──▶ 즉시 반환
-└──────┬───────┘    └──────────┘
-       │ MISS
-       ▼
-┌──────────────┐    ❌
-│ 국립국어원   │──────▶ 거부: "사전에 없는 단어"
-│ API 조회     │
-│ (명사 확인)  │
-└──────┬───────┘
-       │ ✅
-       ▼
-   ✅ 유효한 단어!
+```mermaid
+flowchart TD
+    A["입력: 사과"] --> B{"2글자 이상?"}
+    B -->|❌| X1["거부"]
+    B -->|✅| C{"이미 사용?"}
+    C -->|❌ 사용됨| X2["거부"]
+    C -->|✅ 미사용| D{"끝말잇기 규칙 충족?\n(두음법칙)"}
+    D -->|❌| X3["거부"]
+    D -->|✅| E{"LRU 캐시"}
+    E -->|HIT| F["즉시 반환"]
+    E -->|MISS| G{"국립국어원 API 조회\n(명사 확인)"}
+    G -->|❌| X4["거부: 사전에 없는 단어"]
+    G -->|✅| H["✅ 유효한 단어!"]
+
+    style A fill:#4fc3f7,color:#000
+    style H fill:#66bb6a,color:#000
+    style X1 fill:#ef5350,color:#fff
+    style X2 fill:#ef5350,color:#fff
+    style X3 fill:#ef5350,color:#fff
+    style X4 fill:#ef5350,color:#fff
 ```
 
 <br>
 
 ## 두음법칙 처리
 
-```
-┌────────────────────────────────────────────┐
-│            한국어 두음법칙 변환             │
-│                                            │
-│   원래 글자  →  허용되는 시작 글자          │
-│                                            │
-│     녀  ──────▶  여                        │
-│     뇨  ──────▶  요                        │
-│     뉴  ──────▶  유                        │
-│     니  ──────▶  이                        │
-│     라  ──────▶  나                        │
-│     려  ──────▶  여                        │
-│     례  ──────▶  예                        │
-│     료  ──────▶  요                        │
-│     류  ──────▶  유                        │
-│     리  ──────▶  이                        │
-│                                            │
-│   예: "여료" → '료'로 끝남                  │
-│       → "요리" (료→요) 허용! ✅             │
-│                                            │
-└────────────────────────────────────────────┘
-```
+| 원래 글자 | 허용되는 시작 글자 |
+|:---------:|:-----------------:|
+| 녀 | 여 |
+| 뇨 | 요 |
+| 뉴 | 유 |
+| 니 | 이 |
+| 라 | 나 |
+| 려 | 여 |
+| 례 | 예 |
+| 료 | 요 |
+| 류 | 유 |
+| 리 | 이 |
+
+> **예시:** "여료" → '료'로 끝남 → "요리" (료→요) 허용! ✅
 
 <br>
 
@@ -294,32 +273,27 @@ word-chain-game/
 
 ## 기술 스택
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        Frontend                             │
-│                                                             │
-│   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────┐  │
-│   │ Vanilla  │  │ Web      │  │WebSocket │  │ CSS       │  │
-│   │ JS       │  │ Audio    │  │ Client   │  │ Animations│  │
-│   │          │  │ API      │  │          │  │           │  │
-│   └──────────┘  └──────────┘  └──────────┘  └───────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                        Backend                              │
-│                                                             │
-│   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌───────────┐  │
-│   │ FastAPI  │  │ Uvicorn  │  │ Pydantic │  │ aiohttp   │  │
-│   │          │  │ ASGI     │  │ Settings │  │           │  │
-│   └──────────┘  └──────────┘  └──────────┘  └───────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                      External APIs                          │
-│                                                             │
-│   ┌──────────────┐  ┌───────────────┐  ┌────────────────┐  │
-│   │ Claude Haiku │  │ Deepgram      │  │ 국립국어원      │  │
-│   │ (Anthropic)  │  │ Nova-2 (STT)  │  │ 한국어기초사전  │  │
-│   │              │  │               │  │                │  │
-│   │  AI 단어생성  │  │  음성→텍스트   │  │  단어 검증     │  │
-│   └──────────────┘  └───────────────┘  └────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+block-beta
+    columns 3
+
+    block:frontend["Frontend"]:3
+        A["Vanilla JS"] B["Web Audio API"] C["WebSocket Client"] D["CSS Animations"]
+    end
+
+    block:backend["Backend"]:3
+        E["FastAPI"] F["Uvicorn ASGI"] G["Pydantic Settings"] H["aiohttp"]
+    end
+
+    block:apis["External APIs"]:3
+        I["Claude Haiku\n(Anthropic)\nAI 단어생성"]
+        J["Deepgram Nova-2\n(STT)\n음성→텍스트"]
+        K["국립국어원\n한국어기초사전\n단어 검증"]
+    end
+
+    style frontend fill:#e3f2fd,color:#000
+    style backend fill:#fff3e0,color:#000
+    style apis fill:#fce4ec,color:#000
 ```
 
 <br>
@@ -366,24 +340,12 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 ## 게임 규칙
 
-```
-┌─────────────────────────────────────────────┐
-│                                             │
-│  1. 상대방 단어의 마지막 글자로 시작하는      │
-│     2글자 이상의 한국어 명사를 말한다         │
-│                                             │
-│  2. 국립국어원 사전에 등재된 단어만 인정      │
-│                                             │
-│  3. 이미 사용한 단어는 재사용 불가            │
-│                                             │
-│  4. 두음법칙 적용 (려→여, 류→유 등)          │
-│                                             │
-│  5. 15초 안에 답하지 못하면 패배              │
-│                                             │
-│  6. AI도 동일한 규칙 적용 — 15초 타임아웃     │
-│                                             │
-└─────────────────────────────────────────────┘
-```
+1. 상대방 단어의 마지막 글자로 시작하는 **2글자 이상**의 한국어 명사를 말한다
+2. **국립국어원 사전**에 등재된 단어만 인정
+3. 이미 사용한 단어는 **재사용 불가**
+4. **두음법칙** 적용 (려→여, 류→유 등)
+5. **15초** 안에 답하지 못하면 패배
+6. AI도 동일한 규칙 적용 — 15초 타임아웃
 
 <br>
 
