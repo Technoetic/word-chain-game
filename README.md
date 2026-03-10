@@ -12,7 +12,7 @@
 
 <br>
 
-[🕹️ Live Demo](https://web-production-8d608.up.railway.app/) · [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com)
+[![Live Demo](https://img.shields.io/badge/Live_Demo-FF6B6B?style=for-the-badge&logo=googlechrome&logoColor=white)](https://web-production-8d608.up.railway.app/) [![Deploy on Railway](https://img.shields.io/badge/Deploy_on_Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.com)
 
 ---
 
