@@ -8,7 +8,7 @@
 
 <br>
 
-<img src="https://img.shields.io/badge/Claude_Haiku-191919?style=for-the-badge&logo=anthropic&logoColor=white" alt="Claude"> <img src="https://img.shields.io/badge/Deepgram-13EF93?style=for-the-badge&logo=deepgram&logoColor=black" alt="Deepgram"> <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"> <img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socketdotio&logoColor=white" alt="WebSocket">
+<img src="https://img.shields.io/badge/Claude_Haiku-191919?style=for-the-badge&logo=anthropic&logoColor=white" alt="Claude"> <img src="https://img.shields.io/badge/Deepgram-13EF93?style=for-the-badge&logo=deepgram&logoColor=black" alt="Deepgram"> <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"> <img src="https://img.shields.io/badge/WebSocket-010101?style=for-the-badge&logo=socketdotio&logoColor=white" alt="WebSocket"> <img src="https://img.shields.io/badge/국립국어원-FFFFFF?style=for-the-badge" alt="국립국어원">
 
 <br>
 
@@ -189,7 +189,7 @@ word-chain-game/
 | Backend | FastAPI, Uvicorn, Pydantic | <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white"> <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"> |
 | AI | Claude Haiku | <img src="https://img.shields.io/badge/Anthropic-191919?style=flat-square&logo=anthropic&logoColor=white"> |
 | STT | Deepgram Nova-2 | <img src="https://img.shields.io/badge/Deepgram-13EF93?style=flat-square&logo=deepgram&logoColor=black"> |
-| Dictionary | 국립국어원 API | 📖 |
+| Dictionary | 국립국어원 API | <img src="https://i.namu.wiki/i/y5Vr1DQWFUTnHc8pX3DLNoewkGpbnxSAnPlWdCrQapFPsfwBSXpSqxVEyZZoP9MjeTz9eeEdlfrijs4C8MIh4Q.svg" height="20"> |
 | Deploy | Railway | <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white"> |
 
 ## Setup
@@ -203,7 +203,7 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 | Env | Required | Description |
 |-----|:--------:|-------------|
 | `ANTHROPIC_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Anthropic-191919?style=flat-square&logo=anthropic&logoColor=white"> Claude API |
-| `KOREAN_DICT_API_KEY` | ✓ | 국립국어원 API |
+| `KOREAN_DICT_API_KEY` | ✓ | <img src="https://i.namu.wiki/i/y5Vr1DQWFUTnHc8pX3DLNoewkGpbnxSAnPlWdCrQapFPsfwBSXpSqxVEyZZoP9MjeTz9eeEdlfrijs4C8MIh4Q.svg" height="16"> 국립국어원 API |
 | `DEEPGRAM_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Deepgram-13EF93?style=flat-square&logo=deepgram&logoColor=black"> STT |
 | `ANTHROPIC_BASE_URL` | | Proxy URL |
 
