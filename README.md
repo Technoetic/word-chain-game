@@ -183,7 +183,7 @@ word-chain-game/
 
 ## Stack
 
-| Layer | Tech | |
+| Layer | Tech | Logo |
 |-------|------|-|
 | Frontend | Vanilla JS, Web Audio, WebSocket | <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black"> <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white"> |
 | Backend | FastAPI, Uvicorn, Pydantic | <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white"> <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"> |
