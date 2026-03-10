@@ -18,6 +18,8 @@
 
 <br>
 
+### [🎮 지금 플레이하기](https://web-production-8d608.up.railway.app/)
+
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com)
 
 ---
