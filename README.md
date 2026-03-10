@@ -26,6 +26,15 @@
 
 </div>
 
+## Rules
+
+1. 상대 단어의 마지막 글자로 시작하는 2글자 이상의 명사
+2. 국립국어원 사전 등재 단어만 유효
+3. 중복 사용 불가
+4. 두음법칙 허용
+5. 제한시간 15초
+6. AI 동일 규칙 적용
+
 ## Game Flow
 
 ```mermaid
@@ -37,6 +46,18 @@ flowchart LR
 
 - 한방 단어 → AI 리액션 (LLM 실시간 생성)
 - 타임아웃 → 패배
+
+## 💀 Killer Words
+
+> `럽 릎 듐 륨 늄 늅 뀨 쀼 튐`
+
+이 글자로 끝나는 단어를 사용하면 AI가 이을 수 없음 → LLM이 짜증 리액션 생성
+
+```mermaid
+flowchart LR
+    A["시럽"] -->|ends with 럽| B["No words start with 럽"]
+    B --> C["🤖 AI: 아 ㅅㅂ..."]
+```
 
 ## Architecture
 
@@ -89,45 +110,6 @@ flowchart TD
     G --> C
 ```
 
-## 💀 Killer Words
-
-> `럽 릎 듐 륨 늄 늅 뀨 쀼 튐`
-
-이 글자로 끝나는 단어를 사용하면 AI가 이을 수 없음 → LLM이 짜증 리액션 생성
-
-```mermaid
-flowchart LR
-    A["시럽"] -->|ends with 럽| B["No words start with 럽"]
-    B --> C["🤖 AI: 아 ㅅㅂ..."]
-```
-
-## WebSocket Protocol
-
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant S as Server
-
-    C->>S: game_start
-    S->>C: game_started {session_id}
-
-    C->>S: word_submit {word}
-    S->>C: word_result {valid, killer}
-
-    rect rgb(180, 60, 60)
-        Note over C,S: Killer word detected
-        S->>C: ai_reaction START
-        S->>C: ai_reaction 아
-        S->>C: ai_reaction ㅅㅂ
-        S->>C: ai_reaction END
-    end
-
-    S->>C: llm_typing START → 과 → 일
-    S->>C: llm_complete 과일
-
-    S->>C: game_over
-```
-
 ## Word Validation
 
 ```mermaid
@@ -155,6 +137,33 @@ flowchart TD
 | 르 → 느 | 리 → 이 | | |
 
 `여료 → ends with 료 → 요리 (료→요) accepted`
+
+## WebSocket Protocol
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    C->>S: game_start
+    S->>C: game_started {session_id}
+
+    C->>S: word_submit {word}
+    S->>C: word_result {valid, killer}
+
+    rect rgb(180, 60, 60)
+        Note over C,S: Killer word detected
+        S->>C: ai_reaction START
+        S->>C: ai_reaction 아
+        S->>C: ai_reaction ㅅㅂ
+        S->>C: ai_reaction END
+    end
+
+    S->>C: llm_typing START → 과 → 일
+    S->>C: llm_complete 과일
+
+    S->>C: game_over
+```
 
 ## Project Structure
 
@@ -213,12 +222,3 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 | `KOREAN_DICT_API_KEY` | ✓ | <img src="https://i.namu.wiki/i/y5Vr1DQWFUTnHc8pX3DLNoewkGpbnxSAnPlWdCrQapFPsfwBSXpSqxVEyZZoP9MjeTz9eeEdlfrijs4C8MIh4Q.svg" height="16"> |
 | `DEEPGRAM_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Deepgram-13EF93?style=flat-square&logo=deepgram&logoColor=black"> |
 | `ANTHROPIC_BASE_URL` | | Proxy URL |
-
-## Rules
-
-1. 상대 단어의 마지막 글자로 시작하는 2글자 이상의 명사
-2. 국립국어원 사전 등재 단어만 유효
-3. 중복 사용 불가
-4. 두음법칙 허용
-5. 제한시간 15초
-6. AI 동일 규칙 적용
