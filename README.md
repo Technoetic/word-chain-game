@@ -1,54 +1,52 @@
 <div align="center">
 
-# 🎤 끝말잇기 vs AI 🤖
+# 끝말잇기 vs AI
 
-마이크 키고 AI한테 끝말잇기 걸 수 있는 웹게임임
+음성 기반 실시간 끝말잇기 대전
 
-`"사과" → "과일" → "일출" → ...`
+`사과 → 과일 → 일출 → ...`
 
 Claude Haiku · Deepgram STT · 국립국어원 사전 · FastAPI WebSocket
 
 <br>
 
-### [🕹️ 바로 하기](https://web-production-8d608.up.railway.app/)
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com)
+[🕹️ Live Demo](https://web-production-8d608.up.railway.app/) · [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com)
 
 ---
 
 </div>
 
-## 🔄 대충 이렇게 돌아감
+## Game Flow
 
 ```mermaid
 flowchart LR
-    A["🎤 마이크로 말함"] -->|15초 안에| B["서버에서 검증"]
-    B --> C["🤖 AI가 한글자씩 응답"]
-    C -->|다시 15초| A
+    A["🎤 음성 입력"] -->|15s 제한| B["검증"]
+    B --> C["🤖 AI 스트리밍 응답"]
+    C -->|15s 제한| A
 ```
 
-- 한방 단어 쓰면 AI가 욕함 🤬 (LLM이 실시간으로 생성해서 뱉음)
-- 15초 넘기면 그냥 짐
+- 한방 단어 → AI 리액션 (LLM 실시간 생성)
+- 타임아웃 → 패배
 
-## 🏗️ 전체 구조
+## Architecture
 
 ```mermaid
 flowchart TB
-    subgraph 브라우저
+    subgraph Client
         STT["🎤 STT · Deepgram"]
-        UI["🎮 게임 UI · WebSocket"]
+        UI["🎮 Game UI · WebSocket"]
     end
 
-    subgraph 서버["⚙️ FastAPI"]
+    subgraph Server["⚙️ FastAPI"]
         PROXY["STT Proxy"]
         WS["WebSocket Handler"]
         ENGINE["Game Engine"]
     end
 
-    subgraph 외부["🌐 외부 API"]
-        DG["Deepgram API"]
-        CL["Claude API"]
-        KR["국립국어원 API"]
+    subgraph External
+        DG["Deepgram"]
+        CL["Claude"]
+        KR["국립국어원"]
     end
 
     STT -->|wss| PROXY
@@ -59,55 +57,55 @@ flowchart TB
     ENGINE --> KR
 ```
 
-## 🎤 음성 인식 흐름
+## STT Pipeline
 
 ```mermaid
 flowchart LR
-    A["🎤 마이크 누름"] --> B["PCM 캡처"] --> C["WebSocket으로 쏨"] --> D["Deepgram Nova-2"]
-    D --> E["중간 결과: 사 → 사과"]
-    D --> F["최종 확정: 사과 ✅"]
+    A["🎤 Record"] --> B["PCM Capture"] --> C["WebSocket"] --> D["Deepgram Nova-2"]
+    D --> E["interim: 사 → 사과"]
+    D --> F["final: 사과 ✅"]
 ```
 
-## 🤖 AI는 이렇게 대답함
+## AI Response
 
 ```mermaid
 flowchart TD
-    A["유저가 '사과' 냄"] --> B["끝글자 '과' 뽑음"]
-    B --> C["Claude한테 '과'로 시작하는 명사 달라고 함"]
+    A["Input: 사과"] --> B["Last char: 과"]
+    B --> C["Claude Haiku generates noun starting with '과'"]
     C --> D["과 → 과일"]
-    D --> E{"국립국어원 사전에 있음?"}
-    E -->|ㅇㅇ| F["걍 보냄"]
-    E -->|ㄴㄴ| G["다시 ㄱㄱ"]
+    D --> E{"Valid in dictionary?"}
+    E -->|Yes| F["Send"]
+    E -->|No| G["Retry"]
     G --> C
 ```
 
-## 💀 한방 단어
+## 💀 Killer Words
 
-> **럽, 릎, 듐, 륨, 늄, 늅, 뀨, 쀼, 튐**
+> `럽 릎 듐 륨 늄 늅 뀨 쀼 튐`
 
-이 글자로 끝나는 단어 던지면 AI가 이을 수가 없어서 짜증냄 ㅋㅋ
+이 글자로 끝나는 단어를 사용하면 AI가 이을 수 없음 → LLM이 짜증 리액션 생성
 
 ```mermaid
 flowchart LR
-    A["유저: 시럽 😎"] -->|끝글자 '럽'| B["'럽'으로 시작하는 단어가 없음 💀"]
-    B --> C["AI: 아 ㅅㅂ... 🤬"]
+    A["시럽"] -->|ends with 럽| B["No words start with 럽"]
+    B --> C["🤖 AI: 아 ㅅㅂ..."]
 ```
 
-## 📡 WebSocket 주고받는 거
+## WebSocket Protocol
 
 ```mermaid
 sequenceDiagram
-    participant C as 📱 Client
-    participant S as 🖥️ Server
+    participant C as Client
+    participant S as Server
 
     C->>S: game_start
-    S->>C: game_started + session_id
+    S->>C: game_started {session_id}
 
-    C->>S: word_submit
-    S->>C: word_result (valid/killer)
+    C->>S: word_submit {word}
+    S->>C: word_result {valid, killer}
 
     rect rgb(255, 235, 238)
-        Note over C,S: 💀 한방 단어 맞았을 때
+        Note over C,S: Killer word detected
         S->>C: ai_reaction START
         S->>C: ai_reaction 아
         S->>C: ai_reaction ㅅㅂ
@@ -117,109 +115,100 @@ sequenceDiagram
     S->>C: llm_typing START → 과 → 일
     S->>C: llm_complete 과일
 
-    S->>C: game_over 🏁
+    S->>C: game_over
 ```
 
-## ✅ 단어 검증 과정
+## Word Validation
 
 ```mermaid
 flowchart TD
-    A["단어 들어옴"] --> B{"2글자 이상?"}
-    B -->|no| X1["❌ 탈락"]
-    B -->|yes| C{"이미 쓴 단어?"}
-    C -->|yes| X2["❌ 탈락"]
-    C -->|no| D{"끝말잇기 규칙 맞음? + 두음법칙"}
-    D -->|no| X3["❌ 탈락"]
-    D -->|yes| E{"캐시에 있음?"}
-    E -->|hit| F["⚡ 바로 통과"]
-    E -->|miss| G{"국립국어원 API 조회"}
-    G -->|no| X4["❌ 사전에 없는 단어"]
-    G -->|yes| H["✅ 통과"]
+    A["Input"] --> B{"length >= 2?"}
+    B -->|No| X1["Reject"]
+    B -->|Yes| C{"Already used?"}
+    C -->|Yes| X2["Reject"]
+    C -->|No| D{"Chain rule + 두음법칙"}
+    D -->|No| X3["Reject"]
+    D -->|Yes| E{"LRU Cache"}
+    E -->|Hit| F["Pass"]
+    E -->|Miss| G{"국립국어원 API"}
+    G -->|No| X4["Not in dictionary"]
+    G -->|Yes| H["✅ Valid"]
 ```
 
-## 📝 두음법칙
+## 두음법칙 (Initial Sound Rule)
 
-| 원래 | → | 바뀜 |
-|:----:|:-:|:----:|
-| 녀 | → | 여 |
-| 뇨 | → | 요 |
-| 뉴 | → | 유 |
-| 니 | → | 이 |
-| 라 | → | 나 |
-| 려 | → | 여 |
-| 례 | → | 예 |
-| 료 | → | 요 |
-| 류 | → | 유 |
-| 리 | → | 이 |
+| Original | Allowed |
+|:--------:|:-------:|
+| 녀 → 여 | 뇨 → 요 |
+| 뉴 → 유 | 니 → 이 |
+| 라 → 나 | 려 → 여 |
+| 례 → 예 | 료 → 요 |
+| 류 → 유 | 리 → 이 |
 
-예: "여료" → 끝이 '료' → "요리" (료→요 변환) 이것도 인정해줌 👍
+`여료 → ends with 료 → 요리 (료→요) accepted`
 
-## 📂 파일 구조
+## Project Structure
 
 ```
 word-chain-game/
-├── Procfile                    # Railway 배포용
-├── requirements.txt            # 파이썬 패키지
+├── Procfile
+├── requirements.txt
 ├── backend/
-│   ├── main.py                 # FastAPI 앱
+│   ├── main.py
 │   ├── game/
-│   │   ├── engine.py           # 게임 엔진
-│   │   ├── state.py            # 상태 관리
-│   │   └── rules.py            # 규칙 검증
+│   │   ├── engine.py
+│   │   ├── state.py
+│   │   └── rules.py
 │   ├── llm/
-│   │   ├── service.py          # Claude 스트리밍
-│   │   └── prompt_builder.py   # 프롬프트
+│   │   ├── service.py
+│   │   └── prompt_builder.py
 │   ├── dictionary/
-│   │   ├── validator.py        # 단어 검증
-│   │   ├── korean_api_client.py # 국립국어원 API
-│   │   └── cache.py            # LRU 캐시
+│   │   ├── validator.py
+│   │   ├── korean_api_client.py
+│   │   └── cache.py
 │   ├── websocket/
-│   │   ├── handlers.py         # 메시지 라우팅
-│   │   ├── manager.py          # 연결 관리
-│   │   └── messages.py         # 메시지 스키마
+│   │   ├── handlers.py
+│   │   ├── manager.py
+│   │   └── messages.py
 │   ├── stt/
-│   │   └── deepgram_proxy.py   # Deepgram 프록시
+│   │   └── deepgram_proxy.py
 │   └── utils/
-│       ├── korean.py           # 한글 유틸
-│       └── config.py           # 환경 변수
+│       ├── korean.py
+│       └── config.py
 └── dist/
-    └── index.html              # 프론트엔드 (싱글 파일 번들)
+    └── index.html
 ```
 
-## 🛠️ 기술 스택
+## Stack
 
-| 뭐 | 뭘로 |
-|------|------|
-| 프론트 | Vanilla JS, Web Audio API, WebSocket, CSS 애니메이션 |
-| 백엔드 | FastAPI, Uvicorn, Pydantic, aiohttp |
+| Layer | Tech |
+|-------|------|
+| Frontend | Vanilla JS, Web Audio API, WebSocket, CSS Animations |
+| Backend | FastAPI, Uvicorn, Pydantic, aiohttp |
 | AI | Claude Haiku (Anthropic) |
-| 음성인식 | Deepgram Nova-2 |
-| 사전 | 국립국어원 한국어기초사전 API |
+| STT | Deepgram Nova-2 |
+| Dictionary | 국립국어원 한국어기초사전 API |
 
-## 🚀 로컬에서 돌리기
+## Setup
 
 ```bash
 pip install -r requirements.txt
-cp backend/.env.example .env   # 여기에 API 키 넣으면 됨
+cp backend/.env.example .env
 uvicorn backend.main:app --host 0.0.0.0 --port 8000
 ```
 
-http://localhost:8000 들어가면 됨
+| Env | Required | Description |
+|-----|:--------:|-------------|
+| `ANTHROPIC_API_KEY` | ✓ | Claude API |
+| `KOREAN_DICT_API_KEY` | ✓ | 국립국어원 API |
+| `DEEPGRAM_API_KEY` | ✓ | Deepgram STT |
+| `ANTHROPIC_BASE_URL` | | Proxy URL |
 
-### 환경 변수
+## Rules
 
-| 변수 | 필수 | 뭐하는거 |
-|------|:----:|------|
-| `ANTHROPIC_API_KEY` | ⭕ | Claude API 키 |
-| `KOREAN_DICT_API_KEY` | ⭕ | 국립국어원 API 키 |
-| `DEEPGRAM_API_KEY` | ⭕ | Deepgram STT 키 |
-| `ANTHROPIC_BASE_URL` | | 프록시 쓸 때만 |
-
-## 📜 게임 규칙
-
-1. 상대 단어 끝글자로 시작하는 **2글자 이상** 명사 말하기
-2. 국립국어원 사전에 등록된 단어만 인정
-3. 한번 나온 단어는 다시 못 씀
-4. 두음법칙 적용됨 (려→여, 류→유 이런거)
-5. 15초 안에 못 대면 짐 💀
-6. AI도 똑같은 규칙 적용됨 (봐주는 거 없음)
+1. 상대 단어의 마지막 글자로 시작하는 2글자 이상의 명사
+2. 국립국어원 사전 등재 단어만 유효
+3. 중복 사용 불가
+4. 두음법칙 허용
+5. 제한시간 15초
+6. AI 동일 규칙 적용
