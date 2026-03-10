@@ -106,7 +106,7 @@ sequenceDiagram
     C->>S: word_submit {word}
     S->>C: word_result {valid, killer}
 
-    rect rgb(255, 235, 238)
+    rect rgb(180, 60, 60)
         Note over C,S: Killer word detected
         S->>C: ai_reaction START
         S->>C: ai_reaction 아
