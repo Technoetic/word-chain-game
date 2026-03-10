@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+__pycache__/
+*.pyc
+.claude/screenshots/
+.claude/research-raw-*.txt
+.claude/hooks/*.log
+*.log
+.venv/
+venv/
