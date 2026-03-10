@@ -71,9 +71,9 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    A["🎤 Record"] --> B["PCM Capture"] --> C["WebSocket"] --> D["Deepgram Nova-2"]
-    D --> E["interim: 사 → 사과"]
-    D --> F["final: 사과 ✅"]
+    A["🎤 Record"] --> B["PCM 16kHz"] --> C["WebSocket"] --> D["FastAPI\nSTT Proxy"] --> E["Deepgram\nNova-2"]
+    E --> F["interim: 사 → 사과"]
+    E --> G["final: 사과 ✅"]
 ```
 
 ## AI Response
@@ -147,13 +147,12 @@ flowchart TD
 
 ## 두음법칙 (Initial Sound Rule)
 
-| Original | Allowed |
-|:--------:|:-------:|
-| 녀 → 여 | 뇨 → 요 |
-| 뉴 → 유 | 니 → 이 |
-| 라 → 나 | 려 → 여 |
-| 례 → 예 | 료 → 요 |
-| 류 → 유 | 리 → 이 |
+| Original | Allowed | Original | Allowed |
+|:--------:|:-------:|:--------:|:-------:|
+| 녀 → 여 | 뇨 → 요 | 뉴 → 유 | 니 → 이 |
+| 라 → 나 | 래 → 내 | 려 → 여 | 례 → 예 |
+| 료 → 요 | 로 → 노 | 루 → 누 | 류 → 유 |
+| 르 → 느 | 리 → 이 | | |
 
 `여료 → ends with 료 → 요리 (료→요) accepted`
 
