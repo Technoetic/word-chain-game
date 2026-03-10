@@ -14,6 +14,10 @@
 
 [![Live Demo](https://img.shields.io/badge/Live_Demo-FF6B6B?style=for-the-badge&logo=googlechrome&logoColor=white)](https://web-production-8d608.up.railway.app/) [![Deploy on Railway](https://img.shields.io/badge/Deploy_on_Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.com)
 
+<br>
+
+<img src="assets/screenshot-main.png" width="400" alt="메인 화면"> <img src="assets/screenshot-play.png" width="400" alt="플레이 화면">
+
 ---
 
 </div>
