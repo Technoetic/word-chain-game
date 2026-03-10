@@ -53,10 +53,10 @@ flowchart TB
         ENGINE["Game Engine"]
     end
 
-    subgraph External
-        DG["Deepgram"]
-        CL["Claude"]
-        KR["국립국어원"]
+    subgraph External["🌐 External APIs"]
+        DG["Deepgram API"]
+        CL["Claude API"]
+        KR["국립국어원 API"]
     end
 
     STT -->|wss| PROXY
