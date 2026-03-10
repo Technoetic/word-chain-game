@@ -1,0 +1,3028 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>끝말잇기 vs AI</title>
+  <style>
+/* CSS Reset */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  color: inherit;
+  background-color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  background-color: inherit;
+  border: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+input,
+textarea {
+  padding: 0;
+  border: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+</style>
+  <style>
+/* Theme Variables and Base Styles */
+
+:root {
+  /* Backgrounds */
+  --bg-primary: #0f0f23;
+  --bg-secondary: #1a1a2e;
+
+  /* Text Colors */
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0b0;
+  --text-muted: #707080;
+
+  /* Player Colors */
+  --color-user: #4fc3f7;
+  --color-ai: #ff7043;
+
+  /* Status Colors */
+  --color-success: #66bb6a;
+  --color-error: #ef5350;
+  --color-warning: #ffa726;
+  --color-combo: #ffd54f;
+
+  /* Timer Colors */
+  --timer-safe: #66bb6a;
+  --timer-warn: #ffa726;
+  --timer-danger: #ef5350;
+
+  /* Borders and Dividers */
+  --border-light: #2a2a3e;
+  --border-medium: #3a3a4e;
+  --border-dark: #1a1a2e;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+}
+
+html {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.3px;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light);
+}
+
+/* Selection Styling */
+::selection {
+  background-color: var(--color-user);
+  color: var(--bg-primary);
+}
+
+</style>
+  <style>
+/* Layout Structure */
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* Start Screen */
+.start-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.start-screen__title {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.start-screen__subtitle {
+  font-size: 1.5rem;
+  color: var(--color-ai);
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.start-screen__desc {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 32px;
+}
+
+.btn-primary {
+  background-color: var(--color-user);
+  color: var(--bg-primary);
+  border: none;
+  padding: 14px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.start-btn {
+  max-height: 52px;
+}
+
+.btn-primary:hover {
+  background-color: #29b6f6;
+  transform: translateY(-2px);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Game Screen */
+.game-screen {
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-medium);
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.game-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  gap: 24px;
+}
+
+.input-area {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 24px;
+  background-color: var(--bg-secondary);
+  border-top: 1px solid var(--border-medium);
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* Content Centering */
+.game-board,
+.word-history {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .header {
+    padding: 12px 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .game-area {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .input-area {
+    padding: 12px 16px;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    padding: 10px 12px;
+    font-size: 14px;
+  }
+
+  .game-area {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .input-area {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .game-board,
+  .word-history {
+    max-width: 100%;
+  }
+}
+
+</style>
+  <style>
+/* Keyframe Animations */
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+  75% {
+    transform: translateX(-10px);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(79, 195, 247, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(79, 195, 247, 0.6);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes comboFlash {
+  0%, 100% {
+    color: var(--color-combo);
+    transform: scale(1);
+  }
+  50% {
+    color: #ffff00;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes timerPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes particleFade {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+@keyframes blink {
+  0%, 49%, 100% {
+    opacity: 1;
+  }
+  50%, 99% {
+    opacity: 0;
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes typingCursor {
+  0%, 50% {
+    border-right-color: var(--color-user);
+  }
+  51%, 100% {
+    border-right-color: transparent;
+  }
+}
+
+</style>
+  <style>
+/* Game Board Styling */
+
+.game-board {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-md);
+  min-height: 200px;
+  animation: slideUp 0.5s ease-out;
+}
+
+.game-board.active {
+  border-color: var(--color-user);
+  box-shadow: 0 0 15px rgba(79, 195, 247, 0.2);
+}
+
+.game-board.error {
+  border-color: var(--color-error);
+  box-shadow: 0 0 15px rgba(239, 83, 80, 0.2);
+  animation: shake 0.5s ease-in-out;
+}
+
+.game-board-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.game-board-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.game-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  background-color: rgba(255, 213, 79, 0.1);
+  border-radius: 8px;
+  border-left: 3px solid var(--color-combo);
+  color: var(--color-combo);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.game-status.success {
+  background-color: rgba(102, 187, 106, 0.1);
+  border-left-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.game-status.error {
+  background-color: rgba(239, 83, 80, 0.1);
+  border-left-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.current-word {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background-color: var(--bg-primary);
+  border-radius: 8px;
+  border: 2px solid var(--border-medium);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-user);
+  text-align: center;
+  letter-spacing: 2px;
+  min-height: 60px;
+  word-break: break-all;
+  animation: slideUp 0.4s ease-out;
+}
+
+.current-word.ai {
+  color: var(--color-ai);
+}
+
+.current-word.empty {
+  color: var(--text-muted);
+  font-size: 14px;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.game-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  background-color: rgba(79, 195, 247, 0.05);
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.game-hint strong {
+  color: var(--color-user);
+  font-weight: 600;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .game-board {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .game-board-title {
+    font-size: 16px;
+  }
+
+  .current-word {
+    font-size: 20px;
+    padding: 16px;
+    min-height: 50px;
+  }
+
+  .game-hint {
+    font-size: 11px;
+  }
+}
+
+</style>
+  <style>
+/* Voice Input Component */
+
+.input-area--voice {
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.stt-transcript {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-height: 36px;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.stt-transcript--interim {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.stt-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.stt-hint--hidden {
+  visibility: hidden;
+}
+
+/* Mic wrapper with volume ring */
+.mic-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+}
+
+.mic-ring {
+  position: absolute;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  transition: width 0.08s ease-out, height 0.08s ease-out, opacity 0.08s ease-out;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.mic-ring--active {
+  border-color: rgba(239, 83, 80, 0.5);
+  background: radial-gradient(circle, rgba(239, 83, 80, 0.08) 0%, transparent 70%);
+  opacity: 1;
+}
+
+.mic-btn {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-medium);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--text-secondary);
+}
+
+.mic-btn--large {
+  width: 72px;
+  height: 72px;
+  min-width: 72px;
+}
+
+.mic-btn:hover {
+  border-color: var(--color-user);
+  color: var(--color-user);
+  box-shadow: 0 0 15px rgba(79, 195, 247, 0.3);
+}
+
+.mic-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.mic-btn--active {
+  background-color: var(--color-error);
+  border-color: var(--color-error);
+  color: white;
+  box-shadow: 0 0 25px rgba(239, 83, 80, 0.5);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@media (max-width: 480px) {
+  .mic-wrapper {
+    width: 88px;
+    height: 88px;
+  }
+
+  .mic-btn--large {
+    width: 64px;
+    height: 64px;
+    min-width: 64px;
+  }
+
+  .mic-ring {
+    width: 64px;
+    height: 64px;
+  }
+
+  .stt-transcript {
+    font-size: 20px;
+  }
+}
+
+</style>
+  <style>
+/* Word History Component */
+
+.word-history {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 800px;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.word-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: var(--bg-secondary);
+  border-radius: 8px;
+  border-left: 3px solid var(--border-light);
+  animation: slideUp 0.3s ease-out;
+  transition: all var(--transition-fast);
+}
+
+.word-item:hover {
+  background-color: rgba(26, 26, 46, 0.8);
+  transform: translateX(2px);
+}
+
+.word-item--user {
+  border-left-color: var(--color-user);
+  margin-left: 0;
+}
+
+.word-item--ai {
+  border-left-color: var(--color-ai);
+  margin-right: 0;
+  flex-direction: row-reverse;
+}
+
+.word-item__speaker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  background-color: rgba(79, 195, 247, 0.1);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-user);
+}
+
+.word-item--ai .word-item__speaker {
+  background-color: rgba(255, 112, 67, 0.1);
+  color: var(--color-ai);
+}
+
+.word-item__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.word-item__word {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  word-break: break-word;
+  letter-spacing: 0.5px;
+}
+
+.word-item--user .word-item__word {
+  color: var(--color-user);
+}
+
+.word-item--ai .word-item__word {
+  color: var(--color-ai);
+}
+
+.word-item__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+}
+
+.word-item__dict-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 6px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-success);
+  border: 1px solid rgba(102, 187, 106, 0.3);
+  border-radius: 4px;
+  background: rgba(102, 187, 106, 0.08);
+  white-space: nowrap;
+  animation: badgeFadeIn 0.4s ease-out;
+}
+
+@keyframes badgeFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.word-item--rejected {
+  border-left-color: var(--color-error);
+  opacity: 0.7;
+  transition: opacity 0.4s ease-out;
+}
+
+.word-item--rejected .word-item__word {
+  color: var(--color-error);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+.word-item--rejected .word-item__speaker {
+  background-color: rgba(239, 83, 80, 0.1);
+  color: var(--color-error);
+}
+
+.word-item__dict-badge--fail {
+  color: var(--color-error);
+  border-color: rgba(239, 83, 80, 0.3);
+  background: rgba(239, 83, 80, 0.08);
+}
+
+.word-item--fade-out {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.word-item__timestamp {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.word-item--reaction {
+  border-left-color: var(--color-ai);
+  background: rgba(255, 112, 67, 0.06);
+  padding: 8px 16px;
+  animation: reactionPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.word-item__reaction-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-ai);
+  font-style: italic;
+  opacity: 0.9;
+}
+
+@keyframes reactionPop {
+  0% { opacity: 0; transform: scale(0.8) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.word-item--typing {
+  opacity: 0.8;
+}
+
+.word-item--typing .word-item__word {
+  border-right: 2px solid var(--color-user);
+  padding-right: 4px;
+  animation: typingCursor 0.8s steps(1) infinite;
+}
+
+.word-item--empty {
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  color: var(--text-muted);
+  font-size: 14px;
+  border: none;
+  background-color: transparent;
+}
+
+/* Scrollbar Styling for Word History */
+.word-history::-webkit-scrollbar {
+  width: 6px;
+}
+
+.word-history::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.word-history::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 3px;
+}
+
+.word-history::-webkit-scrollbar-thumb:hover {
+  background: var(--border-light);
+}
+
+/* Animations */
+@keyframes wordSlide {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.word-item--user {
+  animation: slideUp 0.3s ease-out;
+}
+
+.word-item--ai {
+  animation: slideUp 0.3s ease-out 0.1s both;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .word-history {
+    max-height: 300px;
+    gap: 6px;
+  }
+
+  .word-item {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .word-item__word {
+    font-size: 15px;
+  }
+
+  .word-item__speaker {
+    width: 28px;
+    height: 28px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .word-history {
+    max-height: 250px;
+  }
+
+  .word-item {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+
+  .word-item__word {
+    font-size: 14px;
+  }
+
+  .word-item__speaker {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+
+}
+
+</style>
+  <style>
+/* Timer Component */
+
+.timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  position: relative;
+  border-radius: 50%;
+  background-color: var(--bg-primary);
+  border: 2px solid var(--border-medium);
+}
+
+.timer__svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer__circle {
+  fill: none;
+  stroke: var(--timer-safe);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 251;
+  stroke-dashoffset: 0;
+  transition: all var(--transition-normal);
+}
+
+.timer--warn .timer__circle {
+  stroke: var(--timer-warn);
+  animation: timerPulse 1s ease-in-out infinite;
+}
+
+.timer--danger .timer__circle {
+  stroke: var(--timer-danger);
+  animation: timerPulse 0.5s ease-in-out infinite;
+}
+
+.timer__text {
+  position: absolute;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--timer-safe);
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  z-index: 10;
+}
+
+.timer--warn .timer__text {
+  color: var(--timer-warn);
+  animation: pulse 0.8s ease-in-out infinite;
+}
+
+.timer--danger .timer__text {
+  color: var(--timer-danger);
+  animation: pulse 0.4s ease-in-out infinite;
+}
+
+.timer.hidden {
+  display: none;
+}
+
+/* Timer Border Glow */
+.timer::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: transparent;
+  transition: all var(--transition-normal);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.timer--warn::before {
+  box-shadow: 0 0 15px rgba(255, 167, 38, 0.3);
+}
+
+.timer--danger::before {
+  box-shadow: 0 0 20px rgba(239, 83, 80, 0.5);
+  animation: pulse 0.5s ease-in-out infinite;
+}
+
+.timer--safe::before {
+  box-shadow: 0 0 10px rgba(102, 187, 106, 0.2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .timer {
+    width: 70px;
+    height: 70px;
+    min-width: 70px;
+  }
+
+  .timer__text {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .timer {
+    width: 60px;
+    height: 60px;
+    min-width: 60px;
+    border-width: 1.5px;
+  }
+
+  .timer__text {
+    font-size: 20px;
+  }
+
+  .timer__circle {
+    stroke-width: 1.5;
+  }
+}
+
+</style>
+  <style>
+/* Modal Component */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.3s ease-out;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px;
+  background-color: var(--bg-secondary);
+  border-radius: 16px;
+  border: 1px solid var(--border-medium);
+  box-shadow: var(--shadow-lg);
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.4s ease-out;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+.modal__title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: 8px;
+  font-size: 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.modal__close:hover {
+  background-color: var(--border-medium);
+  color: var(--text-primary);
+  transform: rotate(90deg);
+}
+
+/* Modal Content Sections */
+.modal__section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal__section-title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+/* Result Message */
+.modal__result {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background-color: var(--bg-primary);
+  border-radius: 8px;
+  border: 1px solid var(--border-medium);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.modal__result.win {
+  background-color: rgba(102, 187, 106, 0.1);
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.modal__result.lose {
+  background-color: rgba(239, 83, 80, 0.1);
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.modal__result.draw {
+  background-color: rgba(255, 193, 7, 0.1);
+  border-color: var(--color-combo);
+  color: var(--color-combo);
+}
+
+/* Buttons */
+.modal__buttons {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+}
+
+.btn-primary {
+  background-color: var(--color-user);
+  color: var(--bg-primary);
+}
+
+.btn-primary:hover {
+  background-color: #5fd5ff;
+  transform: translateY(-2px);
+  box-shadow: 0 0 15px rgba(79, 195, 247, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--border-light);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal {
+    padding: 24px;
+    gap: 16px;
+  }
+
+  .modal__title {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 20px;
+    gap: 16px;
+    width: 95%;
+  }
+
+  .modal__title {
+    font-size: 20px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
+</style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- 시작 화면 -->
+    <div class="start-screen" id="startScreen">
+      <h1 class="start-screen__title">끝말잇기</h1>
+      <p class="start-screen__subtitle">vs AI</p>
+      <p class="start-screen__desc">마이크로 말하여 AI와 끝말잇기 대결!</p>
+      <button class="btn-primary start-btn" id="startBtn">게임 시작</button>
+    </div>
+
+    <!-- 게임 화면 -->
+    <div class="game-screen" id="gameScreen" style="display:none;">
+      <!-- 상단바 -->
+      <header class="header">
+        <div class="timer" id="timer">
+          <svg class="timer__svg" viewBox="0 0 100 100">
+            <circle class="timer__bg" cx="50" cy="50" r="45" fill="none" stroke="#1a1a2e" stroke-width="8"/>
+            <circle class="timer__circle" cx="50" cy="50" r="45" fill="none" stroke="var(--timer-safe)" stroke-width="8"
+              stroke-dasharray="283" stroke-dashoffset="0" stroke-linecap="round"
+              transform="rotate(-90 50 50)"/>
+          </svg>
+          <span class="timer__text">15</span>
+        </div>
+      </header>
+
+      <!-- 게임 영역 -->
+      <main class="game-area">
+        <div class="game-board">
+          <div class="word-history" id="wordHistory">
+            <!-- 단어 히스토리가 여기에 추가됨 -->
+          </div>
+        </div>
+      </main>
+
+      <!-- 입력 영역 (음성 전용) -->
+      <footer class="input-area input-area--voice">
+        <span class="stt-transcript" id="sttTranscript"></span>
+        <div class="mic-wrapper" id="micWrapper">
+          <div class="mic-ring" id="micRing"></div>
+          <button class="mic-btn mic-btn--large" id="micBtn" title="음성 입력">
+            <svg class="mic-btn__icon" viewBox="0 0 24 24" width="32" height="32">
+              <path fill="currentColor" d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5z"/>
+              <path fill="currentColor" d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </button>
+        </div>
+        <span class="stt-hint" id="sttHint">마이크를 눌러 말하세요</span>
+      </footer>
+    </div>
+
+    <!-- 게임 오버 모달 -->
+    <div class="modal-overlay" id="modalOverlay" style="display:none;">
+      <div class="modal">
+        <h2 class="modal__title" id="modalTitle">게임 종료</h2>
+        <p class="modal__message" id="modalMessage"></p>
+        <div class="modal__buttons">
+          <button class="btn-primary" id="playAgainBtn">다시 하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+const CONSTANTS = {
+  WS_URL: (() => {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${location.host}/ws/`;
+  })(),
+  TIMER_DURATION: 15,
+  MAX_COMBO: 5,
+  MSG_TYPES: {
+    GAME_START: 'game_start',
+    GAME_STARTED: 'game_started',
+    WORD_SUBMIT: 'word_submit',
+    WORD_RESULT: 'word_result',
+    LLM_TYPING: 'llm_typing',
+    LLM_COMPLETE: 'llm_complete',
+    GAME_OVER: 'game_over',
+    TIMER_EXPIRED: 'timer_expired',
+    ERROR: 'error'
+  },
+  COLORS: {
+    USER: '#4fc3f7',
+    AI: '#ff7043',
+    SUCCESS: '#66bb6a',
+    ERROR: '#ef5350',
+    COMBO: '#ffd54f'
+  }
+};
+
+</script>
+  <script>
+class EventBus {
+  constructor() {
+    this._listeners = {};
+  }
+
+  on(event, handler) {
+    if (!this._listeners[event]) {
+      this._listeners[event] = [];
+    }
+    this._listeners[event].push(handler);
+  }
+
+  off(event, handler) {
+    if (!this._listeners[event]) {
+      return;
+    }
+    const index = this._listeners[event].indexOf(handler);
+    if (index > -1) {
+      this._listeners[event].splice(index, 1);
+    }
+  }
+
+  emit(event, data) {
+    if (!this._listeners[event]) {
+      return;
+    }
+    this._listeners[event].forEach(handler => {
+      handler(data);
+    });
+  }
+}
+
+</script>
+  <script>
+class KoreanUtils {
+  static getLastChar(word) {
+    if (!word || word.length === 0) {
+      return '';
+    }
+    return word[word.length - 1];
+  }
+
+  static applyDueum(char) {
+    const dueum = {
+      '녀': '여', '뇨': '요', '뉴': '유', '니': '이',
+      '라': '나', '래': '내', '려': '여', '례': '예',
+      '료': '요', '류': '유', '리': '이', '로': '노',
+      '루': '누', '르': '느'
+    };
+
+    const result = [char];
+    if (dueum[char] && !result.includes(dueum[char])) {
+      result.push(dueum[char]);
+    }
+    return result;
+  }
+
+  static isValidChain(prevWord, nextWord) {
+    if (!prevWord || !nextWord) {
+      return false;
+    }
+
+    const lastChar = this.getLastChar(prevWord);
+    const firstChar = nextWord[0];
+
+    // Direct match
+    if (lastChar === firstChar) {
+      return true;
+    }
+
+    // Dueum law match
+    const validChars = this.applyDueum(lastChar);
+    return validChars.includes(firstChar);
+  }
+
+  static getInitial(char) {
+    if (!char || char.length === 0) {
+      return '';
+    }
+
+    const code = char.charCodeAt(0);
+    if (code < 0xAC00 || code > 0xD7A3) {
+      return char;
+    }
+
+    const index = code - 0xAC00;
+    const initial = Math.floor(index / (21 * 28));
+    const initials = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅄ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+
+    return initials[initial];
+  }
+}
+
+</script>
+  <script>
+const CONFIG = {
+  WS_URL: (() => {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${location.host}/ws/`;
+  })(),
+  TIMER_DURATION: 15,
+  RECONNECT_MAX: 5,
+  RECONNECT_DELAY: 1000
+};
+
+</script>
+  <script>
+class GameState {
+  constructor() {
+    this.usedWords = new Set();
+    this.lastWord = '';
+    this.turnCount = 0;
+    this.isGameActive = false;
+    this.isUserTurn = true;
+  }
+
+  reset() {
+    this.usedWords.clear();
+    this.lastWord = '';
+    this.turnCount = 0;
+    this.isGameActive = false;
+    this.isUserTurn = true;
+  }
+
+  addWord(word, isUser) {
+    const lowerWord = word.toLowerCase();
+    this.usedWords.add(lowerWord);
+    this.lastWord = lowerWord;
+    this.turnCount += 1;
+  }
+
+  hasWord(word) {
+    return this.usedWords.has(word.toLowerCase());
+  }
+}
+
+</script>
+  <script>
+class GameEngine {
+  constructor(eventBusInstance) {
+    this.state = new GameState();
+    this.wsClient = null;
+    this.eventBus = eventBusInstance;
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    this.eventBus.on(CONSTANTS.MSG_TYPES.WORD_RESULT, (data) => {
+      this.handleWordResult(data);
+    });
+
+    this.eventBus.on(CONSTANTS.MSG_TYPES.LLM_TYPING, (data) => {
+      this.handleLLMTyping(data);
+    });
+
+    this.eventBus.on(CONSTANTS.MSG_TYPES.LLM_COMPLETE, (data) => {
+      this.handleLLMComplete(data);
+    });
+
+    this.eventBus.on(CONSTANTS.MSG_TYPES.GAME_OVER, (data) => {
+      this.handleGameOver(data);
+    });
+  }
+
+  setWebSocketClient(wsClient) {
+    this.wsClient = wsClient;
+  }
+
+  startGame(difficulty) {
+    this.state.reset();
+    this.state.isGameActive = true;
+    this.state.isUserTurn = true;
+
+    if (this.wsClient) {
+      this.wsClient.send(CONSTANTS.MSG_TYPES.GAME_START, {
+        difficulty: difficulty || 'normal'
+      });
+    }
+  }
+
+  submitWord(word) {
+    if (!word || word.length === 0) {
+      this.eventBus.emit('word:invalid', {
+        message: '빈 단어입니다.'
+      });
+      return;
+    }
+
+    if (this.state.hasWord(word)) {
+      this.eventBus.emit('word:invalid', {
+        message: '이미 사용한 단어입니다.'
+      });
+      return;
+    }
+
+    if (this.state.lastWord) {
+      if (!KoreanUtils.isValidChain(this.state.lastWord, word)) {
+        this.eventBus.emit('word:invalid', {
+          message: '단어 연결이 올바르지 않습니다.'
+        });
+        return;
+      }
+    }
+
+    this.state.addWord(word, true);
+    this.state.isUserTurn = false;
+
+    if (this.wsClient) {
+      this.wsClient.send(CONSTANTS.MSG_TYPES.WORD_SUBMIT, {
+        word: word,
+        time_left: this.state.timeLeft || CONSTANTS.TIMER_DURATION
+      });
+    }
+  }
+
+  handleWordResult(data) {
+    if (data.isCorrect) {
+      this.eventBus.emit('word:accepted', {
+        word: data.word,
+        isUser: true
+      });
+    } else {
+      this.eventBus.emit('word:rejected', {
+        word: data.word,
+        reason: data.reason
+      });
+    }
+  }
+
+  handleLLMTyping(data) {
+    this.eventBus.emit('llm:typing', {
+      partialWord: data.partialWord
+    });
+  }
+
+  handleLLMComplete(data) {
+    if (data.word) {
+      this.state.addWord(data.word, false);
+      this.eventBus.emit('llm:wordComplete', {
+        word: data.word
+      });
+    }
+
+    this.state.isUserTurn = true;
+    this.eventBus.emit('game:userTurnStart', {
+      lastWord: this.state.lastWord,
+      timeLimit: CONSTANTS.TIMER_DURATION
+    });
+  }
+
+  handleGameOver(data) {
+    this.state.isGameActive = false;
+    this.eventBus.emit('game:over', {
+      winner: data.winner,
+      totalTurns: this.state.turnCount
+    });
+  }
+
+  endGame() {
+    this.state.isGameActive = false;
+    this.eventBus.emit('game:ended', {
+      reason: 'user_quit'
+    });
+  }
+}
+
+</script>
+  <script>
+class SpeechRecognitionManager {
+  constructor(language = 'ko-KR') {
+    this.isListening = false;
+    this.isSupported = true;
+    this._callbacks = {
+      onInterim: null,
+      onFinal: null,
+      onError: null,
+      onStateChange: null
+    };
+
+    this._sttSocket = null;
+    this._mediaStream = null;
+    this._audioContext = null;
+    this._processor = null;
+    this._analyser = null;
+    this._volumeRAF = null;
+    this._onVolumeCallback = null;
+  }
+
+  async start() {
+    if (this.isListening) return;
+
+    try {
+      this._mediaStream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          channelCount: 1,
+          sampleRate: 16000,
+          echoCancellation: true,
+          noiseSuppression: true,
+        }
+      });
+
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host;
+      this._sttSocket = new WebSocket(`${protocol}//${host}/ws/stt`);
+      this._sttSocket.binaryType = 'arraybuffer';
+
+      this._sttSocket.onopen = () => {
+        this._startAudioProcessing();
+        this.isListening = true;
+        if (this._callbacks.onStateChange) {
+          this._callbacks.onStateChange(true);
+        }
+      };
+
+      this._sttSocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'stt_result') {
+          if (data.is_final) {
+            if (this._callbacks.onFinal) {
+              this._callbacks.onFinal(data.transcript);
+            }
+          } else {
+            if (this._callbacks.onInterim) {
+              this._callbacks.onInterim(data.transcript);
+            }
+          }
+        } else if (data.type === 'stt_utterance_end') {
+          if (this._callbacks.onUtteranceEnd) {
+            this._callbacks.onUtteranceEnd();
+          }
+        } else if (data.type === 'stt_error') {
+          if (this._callbacks.onError) {
+            this._callbacks.onError(data.message);
+          }
+        }
+      };
+
+      this._sttSocket.onerror = () => {
+        if (this._callbacks.onError) {
+          this._callbacks.onError('stt-connection-error');
+        }
+        this.stop();
+      };
+
+      this._sttSocket.onclose = () => {
+        if (this.isListening) {
+          this._cleanup();
+          this.isListening = false;
+          if (this._callbacks.onStateChange) {
+            this._callbacks.onStateChange(false);
+          }
+        }
+      };
+    } catch (err) {
+      if (this._callbacks.onError) {
+        this._callbacks.onError('not-allowed');
+      }
+    }
+  }
+
+  _startAudioProcessing() {
+    this._audioContext = new (window.AudioContext || window.webkitAudioContext)({
+      sampleRate: 16000
+    });
+
+    const source = this._audioContext.createMediaStreamSource(this._mediaStream);
+    this._processor = this._audioContext.createScriptProcessor(4096, 1, 1);
+
+    // Volume analyser
+    this._analyser = this._audioContext.createAnalyser();
+    this._analyser.fftSize = 256;
+    this._analyser.smoothingTimeConstant = 0.5;
+    source.connect(this._analyser);
+    this._startVolumeMonitor();
+
+    this._processor.onaudioprocess = (e) => {
+      if (this._sttSocket && this._sttSocket.readyState === WebSocket.OPEN) {
+        const float32 = e.inputBuffer.getChannelData(0);
+        const int16 = new Int16Array(float32.length);
+        for (let i = 0; i < float32.length; i++) {
+          const s = Math.max(-1, Math.min(1, float32[i]));
+          int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+        this._sttSocket.send(int16.buffer);
+      }
+    };
+
+    source.connect(this._processor);
+    this._processor.connect(this._audioContext.destination);
+  }
+
+  stop() {
+    this._cleanup();
+    this.isListening = false;
+    if (this._callbacks.onStateChange) {
+      this._callbacks.onStateChange(false);
+    }
+  }
+
+  abort() {
+    this.stop();
+  }
+
+  _cleanup() {
+    if (this._volumeRAF) {
+      cancelAnimationFrame(this._volumeRAF);
+      this._volumeRAF = null;
+    }
+    if (this._analyser) {
+      this._analyser.disconnect();
+      this._analyser = null;
+    }
+    if (this._onVolumeCallback) {
+      this._onVolumeCallback(0);
+    }
+    if (this._processor) {
+      this._processor.disconnect();
+      this._processor = null;
+    }
+    if (this._audioContext) {
+      this._audioContext.close().catch(() => {});
+      this._audioContext = null;
+    }
+    if (this._mediaStream) {
+      this._mediaStream.getTracks().forEach(t => t.stop());
+      this._mediaStream = null;
+    }
+    if (this._sttSocket && this._sttSocket.readyState === WebSocket.OPEN) {
+      this._sttSocket.close();
+    }
+    this._sttSocket = null;
+  }
+
+  _startVolumeMonitor() {
+    const dataArray = new Uint8Array(this._analyser.frequencyBinCount);
+    const tick = () => {
+      if (!this._analyser) return;
+      this._analyser.getByteFrequencyData(dataArray);
+      let sum = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+      }
+      const avg = sum / dataArray.length;
+      const normalized = Math.min(avg / 128, 1);
+      if (this._onVolumeCallback) {
+        this._onVolumeCallback(normalized);
+      }
+      this._volumeRAF = requestAnimationFrame(tick);
+    };
+    this._volumeRAF = requestAnimationFrame(tick);
+  }
+
+  onVolume(callback) {
+    this._onVolumeCallback = callback;
+  }
+
+  onInterim(callback) {
+    this._callbacks.onInterim = callback;
+  }
+
+  onFinal(callback) {
+    this._callbacks.onFinal = callback;
+  }
+
+  onError(callback) {
+    this._callbacks.onError = callback;
+  }
+
+  onStateChange(callback) {
+    this._callbacks.onStateChange = callback;
+  }
+
+  onUtteranceEnd(callback) {
+    this._callbacks.onUtteranceEnd = callback;
+  }
+}
+
+</script>
+  <script>
+class STTController {
+  constructor() {
+    this.sttManager = new SpeechRecognitionManager('ko-KR');
+    this.isEnabled = this.sttManager.isSupported;
+    this.wordInput = null;
+    this._onInterimCallback = null;
+    this._onFinalCallback = null;
+    this._onListeningChangeCallback = null;
+    this._onVolumeCallback = null;
+    this._lastInterim = '';
+    this._interimTimer = null;
+
+    if (this.isEnabled) {
+      this.sttManager.onInterim((text) => this._onInterimResult(text));
+      this.sttManager.onFinal((text) => this._onFinalResult(text));
+      this.sttManager.onError((error) => this._onError(error));
+      this.sttManager.onStateChange((isListening) => this._onStateChange(isListening));
+      this.sttManager.onVolume((level) => this._onVolume(level));
+      this.sttManager.onUtteranceEnd(() => this._submitPendingInterim());
+    }
+  }
+
+  setWordInput(wordInput) {
+    this.wordInput = wordInput;
+  }
+
+  async toggleListening() {
+    if (!this.isEnabled) {
+      return;
+    }
+
+    if (this.sttManager.isListening) {
+      this._submitPendingInterim();
+      this.sttManager.stop();
+    } else {
+      this._lastInterim = '';
+      await this.sttManager.start();
+    }
+  }
+
+  _submitPendingInterim() {
+    if (this._interimTimer) {
+      clearTimeout(this._interimTimer);
+      this._interimTimer = null;
+    }
+    if (this._lastInterim) {
+      const text = this._lastInterim;
+      this._lastInterim = '';
+      this._onFinalResult(text);
+    }
+  }
+
+  onInterimText(callback) {
+    this._onInterimCallback = callback;
+  }
+
+  onFinalText(callback) {
+    this._onFinalCallback = callback;
+  }
+
+  onListeningChange(callback) {
+    this._onListeningChangeCallback = callback;
+  }
+
+  onVolume(callback) {
+    this._onVolumeCallback = callback;
+  }
+
+  _onVolume(level) {
+    if (this._onVolumeCallback) {
+      this._onVolumeCallback(level);
+    }
+  }
+
+  _onInterimResult(text) {
+    const changed = text !== this._lastInterim;
+    this._lastInterim = text;
+
+    if (changed && text) {
+      if (this._interimTimer) {
+        clearTimeout(this._interimTimer);
+      }
+      this._interimTimer = setTimeout(() => {
+        this._submitPendingInterim();
+      }, 1200);
+    }
+
+    if (this._onInterimCallback) {
+      this._onInterimCallback(text);
+    }
+    if (this.wordInput) {
+      this.wordInput.setInterimText(text);
+    }
+  }
+
+  _onFinalResult(text) {
+    this._lastInterim = '';
+    if (this._interimTimer) {
+      clearTimeout(this._interimTimer);
+      this._interimTimer = null;
+    }
+
+    if (this._onFinalCallback) {
+      this._onFinalCallback(text);
+    }
+    if (this.wordInput) {
+      this.wordInput.setFinalText(text);
+    }
+  }
+
+  _onError(error) {
+    console.error('STT error:', error);
+
+    if (error === 'not-allowed') {
+      alert('마이크 접근 권한이 없습니다. 브라우저 설정에서 허용해주세요.');
+    }
+  }
+
+  _onStateChange(isListening) {
+    if (this._onListeningChangeCallback) {
+      this._onListeningChangeCallback(isListening);
+    }
+    if (this.wordInput) {
+      this.wordInput.updateMicState(isListening);
+    }
+  }
+
+  isListening() {
+    return this.sttManager.isListening;
+  }
+
+  isSupported() {
+    return this.isEnabled;
+  }
+}
+
+</script>
+  <script>
+class WebSocketClient {
+  constructor(baseUrl) {
+    this.baseUrl = baseUrl || CONFIG.WS_URL;
+    this.socket = null;
+    this.isConnected = false;
+    this._handlers = {};
+    this._reconnectAttempts = 0;
+    this._maxReconnect = CONFIG.RECONNECT_MAX || 5;
+    this._reconnectDelay = CONFIG.RECONNECT_DELAY || 1000;
+    this._sessionId = null;
+  }
+
+  connect(sessionId) {
+    this._sessionId = sessionId || this._generateSessionId();
+
+    return new Promise((resolve, reject) => {
+      try {
+        this.socket = new WebSocket(this.baseUrl + this._sessionId);
+
+        this.socket.onopen = () => {
+          this.isConnected = true;
+          this._reconnectAttempts = 0;
+          resolve();
+        };
+
+        this.socket.onclose = () => {
+          this.isConnected = false;
+          if (this._onCloseCallback) {
+            this._onCloseCallback();
+          }
+          this._reconnect();
+        };
+
+        this.socket.onerror = (error) => {
+          if (this._onErrorCallback) {
+            this._onErrorCallback(error);
+          }
+          if (!this.isConnected) {
+            reject(error);
+          }
+        };
+
+        this.socket.onmessage = (event) => {
+          this._handleMessage(event);
+        };
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  send(type, data = {}) {
+    if (!this.isConnected) {
+      return;
+    }
+
+    const message = {
+      type,
+      ...data
+    };
+
+    this.socket.send(JSON.stringify(message));
+  }
+
+  on(type, handler) {
+    if (!this._handlers[type]) {
+      this._handlers[type] = [];
+    }
+
+    this._handlers[type].push(handler);
+  }
+
+  off(type, handler) {
+    if (!this._handlers[type]) {
+      return;
+    }
+
+    const index = this._handlers[type].indexOf(handler);
+    if (index > -1) {
+      this._handlers[type].splice(index, 1);
+    }
+  }
+
+  onError(callback) {
+    this._onErrorCallback = callback;
+  }
+
+  onClose(callback) {
+    this._onCloseCallback = callback;
+  }
+
+  close() {
+    this._maxReconnect = 0;
+    if (this.socket) {
+      this.socket.close();
+    }
+  }
+
+  _handleMessage(event) {
+    try {
+      const message = JSON.parse(event.data);
+
+      if (this._handlers[message.type]) {
+        this._handlers[message.type].forEach((handler) => {
+          handler(message);
+        });
+      }
+    } catch (error) {
+      console.error('Failed to parse message:', error);
+    }
+  }
+
+  async _reconnect() {
+    if (this._reconnectAttempts >= this._maxReconnect) {
+      if (this._handlers['connection_failed']) {
+        this._handlers['connection_failed'].forEach((handler) => {
+          handler();
+        });
+      }
+      return;
+    }
+
+    this._reconnectAttempts++;
+    const delay = this._reconnectDelay * Math.pow(2, this._reconnectAttempts - 1);
+
+    await new Promise((resolve) => setTimeout(resolve, delay));
+
+    try {
+      await this.connect(this._sessionId);
+    } catch (error) {
+      console.error('Reconnection failed:', error);
+      this._reconnect();
+    }
+  }
+
+  _generateSessionId() {
+    const chars = '0123456789abcdef';
+    let sessionId = '';
+
+    for (let i = 0; i < 8; i++) {
+      sessionId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    return sessionId;
+  }
+}
+
+</script>
+  <script>
+class MessageHandler {
+  constructor(gameEngine, eventBus) {
+    this.gameEngine = gameEngine;
+    this.eventBus = eventBus;
+    this.handlers = {
+      game_started: (data) => this._handleGameStarted(data),
+      word_result: (data) => this._handleWordResult(data),
+      ai_reaction: (data) => this._handleAIReaction(data),
+      llm_typing: (data) => this._handleLLMTyping(data),
+      llm_complete: (data) => this._handleLLMComplete(data),
+      game_over: (data) => this._handleGameOver(data),
+      error: (data) => this._handleError(data)
+    };
+  }
+
+  setupHandlers(wsClient) {
+    Object.keys(this.handlers).forEach((type) => {
+      wsClient.on(type, this.handlers[type]);
+    });
+  }
+
+  _handleGameStarted(data) {
+    this.eventBus.emit('game_started', data);
+  }
+
+  _handleWordResult(data) {
+    this.eventBus.emit('word_result', {
+      word: data.word,
+      isCorrect: data.valid,
+      message: data.message,
+      killerWord: data.killer_word || false
+    });
+  }
+
+  _handleAIReaction(data) {
+    this.eventBus.emit('ai_reaction', data);
+  }
+
+  _handleLLMTyping(data) {
+    this.eventBus.emit('llm_typing', data);
+  }
+
+  _handleLLMComplete(data) {
+    this.eventBus.emit('llm_complete', data);
+  }
+
+  _handleGameOver(data) {
+    this.eventBus.emit('game_over', data);
+  }
+
+  _handleError(data) {
+    this.eventBus.emit('error', data);
+  }
+}
+
+</script>
+  <script>
+/**
+ * Timer UI Component
+ * Manages countdown timer display with SVG circle progress indicator
+ */
+class Timer {
+  constructor(elementSelector = '.timer') {
+    this.element = document.querySelector(elementSelector);
+    this.textEl = this.element.querySelector('.timer__text');
+    this.circleEl = this.element.querySelector('.timer__circle');
+    this.duration = CONSTANTS.TIMER_DURATION || 15;
+    this.remaining = this.duration;
+    this._intervalId = null;
+    this._onExpired = null;
+  }
+
+  start() {
+    this.remaining = this.duration;
+    this._updateDisplay();
+
+    if (this._intervalId) {
+      clearInterval(this._intervalId);
+    }
+
+    this._intervalId = setInterval(() => {
+      this.remaining--;
+      this._updateDisplay();
+
+      if (this.remaining <= 0) {
+        this.stop();
+        if (this._onExpired) {
+          this._onExpired();
+        }
+      }
+    }, 1000);
+  }
+
+  stop() {
+    if (this._intervalId) {
+      clearInterval(this._intervalId);
+      this._intervalId = null;
+    }
+  }
+
+  reset(newDuration) {
+    this.stop();
+    if (newDuration !== undefined) {
+      this.duration = newDuration;
+    }
+    this.remaining = this.duration;
+    this.element.classList.remove('timer--danger', 'timer--warn');
+    this._updateDisplay();
+  }
+
+  onExpired(callback) {
+    this._onExpired = callback;
+  }
+
+  _updateDisplay() {
+    // Update text
+    this.textEl.textContent = this.remaining;
+
+    // Update SVG circle dashoffset
+    const circumference = 2 * Math.PI * 45; // radius = 45
+    const offset = circumference * (1 - this.remaining / this.duration);
+    this.circleEl.style.strokeDashoffset = offset;
+
+    // Apply color classes based on remaining time
+    this.element.classList.remove('timer--danger', 'timer--warn', 'timer--safe');
+
+    if (this.remaining < 3) {
+      this.element.classList.add('timer--danger');
+    } else if (this.remaining <= 5) {
+      this.element.classList.add('timer--warn');
+    } else {
+      this.element.classList.add('timer--safe');
+    }
+  }
+}
+
+</script>
+  <script>
+/**
+ * ParticleEffect UI Component
+ * Creates various particle and visual effects
+ */
+class ParticleEffect {
+  static burst(x, y, color = '#66bb6a', count = 15) {
+    const container = document.body;
+
+    for (let i = 0; i < count; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      particle.style.backgroundColor = color;
+
+      // Random velocity and direction
+      const angle = (Math.PI * 2 * i) / count;
+      const velocity = 5 + Math.random() * 5;
+      const vx = Math.cos(angle) * velocity;
+      const vy = Math.sin(angle) * velocity;
+
+      container.appendChild(particle);
+
+      // Animate particle
+      let posX = x;
+      let posY = y;
+      const startTime = Date.now();
+      const duration = 600;
+
+      const animate = () => {
+        const elapsed = Date.now() - startTime;
+        const progress = elapsed / duration;
+
+        if (progress >= 1) {
+          particle.remove();
+          return;
+        }
+
+        posX += vx;
+        posY += vy;
+
+        particle.style.left = posX + 'px';
+        particle.style.top = posY + 'px';
+        particle.style.opacity = 1 - progress;
+
+        requestAnimationFrame(animate);
+      };
+
+      animate();
+    }
+  }
+
+  static success() {
+    const centerX = window.innerWidth / 2;
+    const centerY = window.innerHeight / 2;
+    this.burst(centerX, centerY, '#66bb6a', 20);
+  }
+
+  static fail() {
+    const overlay = document.createElement('div');
+    overlay.className = 'flash-overlay flash-overlay--fail';
+    document.body.appendChild(overlay);
+
+    setTimeout(() => {
+      overlay.remove();
+    }, 300);
+  }
+
+  static combo() {
+    const comboEl = document.querySelector('.combo-display');
+    if (comboEl) {
+      const rect = comboEl.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      this.burst(x, y, '#ffd700', 15);
+    }
+  }
+
+  static screenShake(duration = 300) {
+    const gameBoard = document.querySelector('.game-board');
+    if (!gameBoard) return;
+
+    const startTime = Date.now();
+    const shake = () => {
+      const elapsed = Date.now() - startTime;
+
+      if (elapsed >= duration) {
+        gameBoard.style.transform = 'translate(0, 0)';
+        return;
+      }
+
+      const intensity = (1 - elapsed / duration) * 5;
+      const x = (Math.random() - 0.5) * intensity;
+      const y = (Math.random() - 0.5) * intensity;
+
+      gameBoard.style.transform = `translate(${x}px, ${y}px)`;
+      requestAnimationFrame(shake);
+    };
+
+    shake();
+  }
+}
+
+</script>
+  <script>
+/**
+ * WordHistory UI Component
+ * Displays word exchange history between player and LLM
+ */
+class WordHistory {
+  constructor(containerSelector = '.word-history') {
+    this.container = document.querySelector(containerSelector);
+    this.items = [];
+  }
+
+  addUserWord(word) {
+    const item = this._createWordItem(word, true);
+    this.container.appendChild(item);
+    this.items.push(item);
+    this.scrollToBottom();
+  }
+
+  addRejectedWord(word, reason) {
+    const item = document.createElement('div');
+    item.className = 'word-item word-item--user word-item--rejected';
+
+    const speaker = document.createElement('div');
+    speaker.className = 'word-item__speaker';
+    speaker.textContent = '나';
+
+    const content = document.createElement('div');
+    content.className = 'word-item__content';
+
+    const wordEl = document.createElement('div');
+    wordEl.className = 'word-item__word';
+    wordEl.textContent = word;
+
+    const meta = document.createElement('div');
+    meta.className = 'word-item__meta';
+
+    const badge = document.createElement('span');
+    badge.className = 'word-item__dict-badge word-item__dict-badge--fail';
+    badge.textContent = reason || '표준국어대사전에 없는 단어';
+    meta.appendChild(badge);
+
+    content.appendChild(wordEl);
+    content.appendChild(meta);
+    item.appendChild(speaker);
+    item.appendChild(content);
+
+    this.container.appendChild(item);
+    this.items.push(item);
+    this.scrollToBottom();
+
+    setTimeout(() => {
+      item.classList.add('word-item--fade-out');
+      setTimeout(() => item.remove(), 400);
+    }, 2500);
+  }
+
+  startLLMTyping() {
+    const item = this._createWordItem('', false);
+    item.classList.add('word-item--typing');
+    const wordEl = item.querySelector('.word-item__word');
+    const cursor = document.createElement('span');
+    cursor.className = 'word-history__cursor';
+    cursor.textContent = '|';
+    wordEl.appendChild(cursor);
+    this.container.appendChild(item);
+    this.items.push(item);
+    this.scrollToBottom();
+  }
+
+  addLLMTypingChar(char) {
+    if (this.items.length === 0) return;
+
+    const lastItem = this.items[this.items.length - 1];
+    const wordEl = lastItem.querySelector('.word-item__word');
+    const cursor = wordEl.querySelector('.word-history__cursor');
+
+    if (cursor) {
+      cursor.remove();
+    }
+
+    const charSpan = document.createElement('span');
+    charSpan.textContent = char;
+    wordEl.appendChild(charSpan);
+
+    const newCursor = document.createElement('span');
+    newCursor.className = 'word-history__cursor';
+    newCursor.textContent = '|';
+    wordEl.appendChild(newCursor);
+
+    this.scrollToBottom();
+  }
+
+  finalizeLLMWord(word) {
+    if (this.items.length === 0) return;
+
+    const lastItem = this.items[this.items.length - 1];
+    lastItem.classList.remove('word-item--typing');
+    const cursor = lastItem.querySelector('.word-history__cursor');
+
+    if (cursor) {
+      cursor.remove();
+    }
+
+    const meta = lastItem.querySelector('.word-item__meta');
+    if (meta && !meta.querySelector('.word-item__dict-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'word-item__dict-badge';
+      badge.textContent = '국립국어원 확인';
+      badge.title = '국립국어원 한국어기초사전에서 검증된 단어입니다';
+      meta.appendChild(badge);
+    }
+  }
+
+  startAIReaction() {
+    const item = document.createElement('div');
+    item.className = 'word-item word-item--ai word-item--reaction';
+
+    const speaker = document.createElement('div');
+    speaker.className = 'word-item__speaker';
+    speaker.textContent = 'AI';
+
+    const content = document.createElement('div');
+    content.className = 'word-item__content';
+
+    const textEl = document.createElement('div');
+    textEl.className = 'word-item__reaction-text';
+
+    content.appendChild(textEl);
+    item.appendChild(speaker);
+    item.appendChild(content);
+
+    this.container.appendChild(item);
+    this.items.push(item);
+    this._reactionEl = textEl;
+    this.scrollToBottom();
+  }
+
+  addAIReactionChar(char) {
+    if (this._reactionEl) {
+      this._reactionEl.textContent += char;
+      this.scrollToBottom();
+    }
+  }
+
+  finalizeAIReaction() {
+    this._reactionEl = null;
+  }
+
+  removeLastTyping() {
+    if (this.items.length === 0) return;
+    const lastItem = this.items[this.items.length - 1];
+    if (lastItem.classList.contains('word-item--typing')) {
+      lastItem.remove();
+      this.items.pop();
+    }
+  }
+
+  scrollToBottom() {
+    this.container.scrollTop = this.container.scrollHeight;
+  }
+
+  clear() {
+    this.container.innerHTML = '';
+    this.items = [];
+  }
+
+  _createWordItem(word, isUser) {
+    const item = document.createElement('div');
+    item.className = `word-item ${isUser ? 'word-item--user' : 'word-item--ai'}`;
+
+    const speaker = document.createElement('div');
+    speaker.className = 'word-item__speaker';
+    speaker.textContent = isUser ? '나' : 'AI';
+
+    const content = document.createElement('div');
+    content.className = 'word-item__content';
+
+    const wordEl = document.createElement('div');
+    wordEl.className = 'word-item__word';
+    wordEl.textContent = word;
+
+    const meta = document.createElement('div');
+    meta.className = 'word-item__meta';
+
+    if (isUser) {
+      const badge = document.createElement('span');
+      badge.className = 'word-item__dict-badge';
+      badge.textContent = '국립국어원 확인';
+      badge.title = '국립국어원 한국어기초사전에서 검증된 단어입니다';
+      meta.appendChild(badge);
+    }
+
+    content.appendChild(wordEl);
+    content.appendChild(meta);
+
+    item.appendChild(speaker);
+    item.appendChild(content);
+
+    return item;
+  }
+}
+
+</script>
+  <script>
+/**
+ * WordInput UI Component (Voice-only)
+ * Handles voice input from user - no text field
+ */
+class WordInput {
+  constructor(containerSelector = '.input-area') {
+    this.container = document.querySelector(containerSelector);
+    this.micBtn = this.container.querySelector('.mic-btn');
+    this.transcriptEl = document.getElementById('sttTranscript');
+    this.hintEl = document.getElementById('sttHint');
+    this._onSubmit = null;
+    this._currentWord = '';
+  }
+
+  setInterimText(text) {
+    this._currentWord = text;
+    this.transcriptEl.textContent = text;
+    this.transcriptEl.classList.add('stt-transcript--interim');
+    this.hintEl.classList.add('stt-hint--hidden');
+  }
+
+  setFinalText(text) {
+    this._currentWord = text;
+    this.transcriptEl.textContent = text;
+    this.transcriptEl.classList.remove('stt-transcript--interim');
+
+    if (text && this._onSubmit) {
+      this._onSubmit(text.trim());
+    }
+  }
+
+  onSubmit(callback) {
+    this._onSubmit = callback;
+  }
+
+  setEnabled(enabled) {
+    if (this.micBtn) {
+      this.micBtn.disabled = !enabled;
+    }
+  }
+
+  clear() {
+    this._currentWord = '';
+    this.transcriptEl.textContent = '';
+    this.transcriptEl.classList.remove('stt-transcript--interim');
+    this.hintEl.classList.remove('stt-hint--hidden');
+  }
+
+  shake() {
+    this.container.classList.remove('input-area--shake');
+    void this.container.offsetWidth;
+    this.container.classList.add('input-area--shake');
+  }
+
+  updateMicState(isListening) {
+    if (!this.micBtn) return;
+
+    if (isListening) {
+      this.micBtn.classList.add('mic-btn--active');
+      this.hintEl.textContent = '듣고 있어요...';
+    } else {
+      this.micBtn.classList.remove('mic-btn--active');
+      this.hintEl.textContent = '마이크를 눌러 말하세요';
+    }
+  }
+
+  focus() {
+    // no-op for voice mode
+  }
+
+  getValue() {
+    return this._currentWord.trim();
+  }
+}
+
+</script>
+  <script>
+/**
+ * GameOverModal UI Component
+ * Displays game result modal with winner info
+ */
+class GameOverModal {
+  constructor(containerSelector = '.modal-overlay') {
+    this.overlay = document.querySelector(containerSelector);
+    this.modal = this.overlay ? this.overlay.querySelector('.modal') : null;
+    this.titleEl = document.getElementById('modalTitle');
+    this.messageEl = document.getElementById('modalMessage');
+    this.playAgainBtn = document.getElementById('playAgainBtn');
+    this._onPlayAgain = null;
+
+    this._setupEventListeners();
+  }
+
+  _setupEventListeners() {
+    this.playAgainBtn.addEventListener('click', () => {
+      this.hide();
+      if (this._onPlayAgain) {
+        this._onPlayAgain();
+      }
+    });
+
+    this.overlay.addEventListener('click', (e) => {
+      if (e.target === this.overlay) {
+        this.hide();
+      }
+    });
+  }
+
+  show(result) {
+    const { winner } = result;
+
+    if (winner === 'user') {
+      this.titleEl.textContent = '승리!';
+      this.messageEl.textContent = 'AI가 단어를 잇지 못했습니다!';
+    } else {
+      this.titleEl.textContent = '패배...';
+      this.messageEl.textContent = '시간 초과! 단어를 잇지 못했습니다.';
+    }
+
+    this.overlay.style.display = 'flex';
+  }
+
+  hide() {
+    this.overlay.style.display = 'none';
+  }
+
+  onPlayAgain(callback) {
+    this._onPlayAgain = callback;
+  }
+}
+
+</script>
+  <script>
+/**
+ * GameBoard UI Component
+ * Main container that orchestrates all UI sub-components
+ */
+class GameBoard {
+  constructor(eventBus) {
+    this.eventBus = eventBus;
+
+    // Initialize sub-components
+    this.timer = new Timer('.timer');
+    this.wordHistory = new WordHistory('.word-history');
+    this.wordInput = new WordInput('.input-area');
+    this.gameOverModal = new GameOverModal('.modal-overlay');
+
+    // Initialize STT controller
+    this.sttController = new STTController();
+
+    // Connect STT to WordInput
+    this.sttController.onInterimText((text) => {
+      this.wordInput.setInterimText(text);
+    });
+
+    this.sttController.onFinalText((text) => {
+      this.wordInput.setFinalText(text);
+    });
+
+    this.sttController.onListeningChange((isListening) => {
+      this.wordInput.updateMicState(isListening);
+    });
+
+    // Volume gauge
+    this._micRing = document.getElementById('micRing');
+    this.sttController.onVolume((level) => {
+      if (this._micRing) {
+        if (level > 0.01) {
+          const size = 72 + level * 28;
+          this._micRing.style.width = size + 'px';
+          this._micRing.style.height = size + 'px';
+          this._micRing.classList.add('mic-ring--active');
+        } else {
+          this._micRing.classList.remove('mic-ring--active');
+          this._micRing.style.width = '72px';
+          this._micRing.style.height = '72px';
+        }
+      }
+    });
+
+    this._setupEventListeners();
+  }
+
+  _setupEventListeners() {
+    // Mic button click → toggle STT
+    const micBtn = document.getElementById('micBtn');
+    if (micBtn) {
+      micBtn.addEventListener('click', () => {
+        this.sttController.toggleListening();
+      });
+    }
+
+    // Voice result auto-submit
+    this.wordInput.onSubmit((word) => {
+      if (word) {
+        this.eventBus.emit('word_submitted', { word });
+        this.wordInput.clear();
+      }
+    });
+
+    // Game events from event bus
+    this.eventBus.on('game_started', (data) => {
+      this.resetUI();
+      this.timer.start();
+    });
+
+    // Timer expired — only send on user turn (AI timeout handled by backend)
+    this.timer.onExpired(() => {
+      if (!this._llmTyping) {
+        this.eventBus.emit('timer_expired', {});
+      }
+    });
+
+    this.eventBus.on('word_result', (data) => {
+      const { word, isCorrect, killerWord } = data;
+
+      if (isCorrect) {
+        this.timer.stop();
+        this.wordHistory.addUserWord(word);
+        ParticleEffect.success();
+
+        // killer_word reaction is now streamed via ai_reaction events
+      } else {
+        this.wordInput.shake();
+        ParticleEffect.fail();
+        this.wordHistory.addRejectedWord(word, data.message);
+      }
+    });
+
+    this.eventBus.on('ai_reaction', (data) => {
+      const { char } = data;
+      if (char === 'START') {
+        this.wordHistory.startAIReaction();
+      } else if (char === 'END') {
+        this.wordHistory.finalizeAIReaction();
+      } else {
+        this.wordHistory.addAIReactionChar(char);
+      }
+    });
+
+    this._llmTyping = false;
+    this.eventBus.on('llm_typing', (data) => {
+      const { char } = data;
+      if (char === 'START') {
+        if (this._llmTyping) {
+          // Retry: remove previous failed typing item
+          this.wordHistory.removeLastTyping();
+        } else {
+          // First attempt: start timer
+          this.timer.reset();
+          this.timer.start();
+        }
+        this._llmTyping = true;
+        this.wordHistory.startLLMTyping();
+      } else {
+        this.wordHistory.addLLMTypingChar(char);
+      }
+    });
+
+    this.eventBus.on('llm_complete', (data) => {
+      const { word } = data;
+      this._llmTyping = false;
+      this.wordHistory.finalizeLLMWord(word);
+      this.timer.reset();
+      this.timer.start();
+    });
+
+    this.eventBus.on('game_over', (data) => {
+      this._llmTyping = false;
+      this.timer.stop();
+      this.gameOverModal.show(data);
+    });
+
+    this.eventBus.on('error', (data) => {
+      const { message } = data;
+      this.showError(message);
+    });
+  }
+
+  resetUI() {
+    this.wordHistory.clear();
+    this.wordInput.clear();
+    this.wordInput.setEnabled(true);
+    this.wordInput.focus();
+    this.gameOverModal.hide();
+    this.timer.reset();
+  }
+
+  showError(message) {
+    const notification = document.createElement('div');
+    notification.className = 'error-notification';
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      notification.remove();
+    }, 3000);
+  }
+}
+
+</script>
+  <script>
+/**
+ * Main Entry Point
+ * Initializes the Korean word chain game application
+ */
+
+document.addEventListener('DOMContentLoaded', () => {
+  const eventBus = new EventBus();
+  const gameEngine = new GameEngine(eventBus);
+  const wsClient = new WebSocketClient(CONFIG.WS_URL);
+  const messageHandler = new MessageHandler(gameEngine, eventBus);
+  const gameBoard = new GameBoard(eventBus);
+
+
+  gameEngine.setWebSocketClient(wsClient);
+  messageHandler.setupHandlers(wsClient);
+
+  const startScreen = document.getElementById('startScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const startBtn = document.getElementById('startBtn');
+
+  // Word submission from GameBoard
+  eventBus.on('word_submitted', (data) => {
+    gameEngine.submitWord(data.word);
+  });
+
+  // Timer expired → tell server
+  eventBus.on('timer_expired', () => {
+    wsClient.send('timer_expired', {});
+  });
+
+  // Start game button
+  if (startBtn) {
+    startBtn.addEventListener('click', () => {
+      if (startScreen) startScreen.style.display = 'none';
+      if (gameScreen) gameScreen.style.display = 'flex';
+      gameEngine.startGame();
+      // Emit game_started locally to activate UI immediately
+      eventBus.emit('game_started', { difficulty: 'normal' });
+    });
+  }
+
+  // Play again from modal
+  gameBoard.gameOverModal.onPlayAgain(() => {
+    gameEngine.startGame();
+  });
+
+  // Handle connection errors
+  wsClient.onError((error) => {
+    eventBus.emit('error', {
+      message: '연결 오류가 발생했습니다.'
+    });
+  });
+
+  wsClient.onClose(() => {
+    eventBus.emit('error', {
+      message: '서버와의 연결이 끊어졌습니다.'
+    });
+  });
+
+  // Connect WebSocket
+  wsClient.connect()
+    .catch((err) => {
+      console.error('WebSocket 연결 실패:', err);
+    });
+});
+
+</script>
+</body>
+</html>

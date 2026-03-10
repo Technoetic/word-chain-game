@@ -1,5 +1,8 @@
 const CONSTANTS = {
-  WS_URL: 'ws://localhost:8000/ws/',
+  WS_URL: (() => {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${location.host}/ws/`;
+  })(),
   TIMER_DURATION: 15,
   MAX_COMBO: 5,
   MSG_TYPES: {
