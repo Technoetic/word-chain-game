@@ -205,7 +205,7 @@ word-chain-game/
 | Backend | FastAPI, Uvicorn, Pydantic | <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white"> <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white"> |
 | AI | Claude Haiku | <img src="https://img.shields.io/badge/Anthropic-191919?style=flat-square&logo=anthropic&logoColor=white"> |
 | STT | Deepgram Nova-2 | <img src="https://img.shields.io/badge/Deepgram-13EF93?style=flat-square&logo=deepgram&logoColor=black"> |
-| Dictionary | 국립국어원 API | <img src="https://i.namu.wiki/i/y5Vr1DQWFUTnHc8pX3DLNoewkGpbnxSAnPlWdCrQapFPsfwBSXpSqxVEyZZoP9MjeTz9eeEdlfrijs4C8MIh4Q.svg" height="20"> |
+| Dictionary | 국립국어원 API | <img src="assets/badge-korean-dict.svg" height="20"> |
 | Deploy | Railway | <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white"> |
 
 ## Setup
@@ -219,6 +219,6 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 | Env | Required | Description |
 |-----|:--------:|-------------|
 | `ANTHROPIC_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Anthropic-191919?style=flat-square&logo=anthropic&logoColor=white"> |
-| `KOREAN_DICT_API_KEY` | ✓ | <img src="https://i.namu.wiki/i/y5Vr1DQWFUTnHc8pX3DLNoewkGpbnxSAnPlWdCrQapFPsfwBSXpSqxVEyZZoP9MjeTz9eeEdlfrijs4C8MIh4Q.svg" height="16"> |
+| `KOREAN_DICT_API_KEY` | ✓ | <img src="assets/badge-korean-dict.svg" height="16"> |
 | `DEEPGRAM_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Deepgram-13EF93?style=flat-square&logo=deepgram&logoColor=black"> |
 | `ANTHROPIC_BASE_URL` | | Proxy URL |
