@@ -202,9 +202,9 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 | Env | Required | Description |
 |-----|:--------:|-------------|
-| `ANTHROPIC_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Anthropic-191919?style=flat-square&logo=anthropic&logoColor=white"> Claude API |
-| `KOREAN_DICT_API_KEY` | ✓ | <img src="https://i.namu.wiki/i/y5Vr1DQWFUTnHc8pX3DLNoewkGpbnxSAnPlWdCrQapFPsfwBSXpSqxVEyZZoP9MjeTz9eeEdlfrijs4C8MIh4Q.svg" height="16"> 국립국어원 API |
-| `DEEPGRAM_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Deepgram-13EF93?style=flat-square&logo=deepgram&logoColor=black"> STT |
+| `ANTHROPIC_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Anthropic-191919?style=flat-square&logo=anthropic&logoColor=white"> |
+| `KOREAN_DICT_API_KEY` | ✓ | <img src="https://i.namu.wiki/i/y5Vr1DQWFUTnHc8pX3DLNoewkGpbnxSAnPlWdCrQapFPsfwBSXpSqxVEyZZoP9MjeTz9eeEdlfrijs4C8MIh4Q.svg" height="16"> |
+| `DEEPGRAM_API_KEY` | ✓ | <img src="https://img.shields.io/badge/Deepgram-13EF93?style=flat-square&logo=deepgram&logoColor=black"> |
 | `ANTHROPIC_BASE_URL` | | Proxy URL |
 
 ## Rules
