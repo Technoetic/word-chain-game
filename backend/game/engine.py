@@ -93,7 +93,7 @@ class GameEngine:
             "killer_word": killer,
         }
 
-    MAX_LLM_RETRIES = 5
+    MAX_LLM_RETRIES = 10
 
     async def generate_llm_response(self, target_char: str) -> AsyncGenerator:
         dueum_chars = apply_dueum(target_char)

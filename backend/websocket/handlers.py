@@ -5,7 +5,7 @@ from backend.websocket.messages import (
     ErrorMsg,
 )
 
-LLM_TIMEOUT = 15  # seconds
+LLM_TIMEOUT = 30  # seconds
 
 
 async def handle_message(websocket: WebSocket, data: Dict, manager, session_id: str):
