@@ -10,7 +10,9 @@ from backend.dictionary.korean_api_client import KoreanAPIClient
 from backend.dictionary.cache import WordCache
 from backend.dictionary.validator import WordValidator
 from backend.llm.service import LLMService
-from backend.stt.deepgram_proxy import handle_stt_session
+from backend.stt.deepgram_proxy import handle_stt_session as handle_deepgram_session
+from backend.stt.clova_stt import handle_stt_session as handle_clova_session
+from backend.stt.vito_proxy import handle_stt_session as handle_vito_session
 from backend.utils.config import Settings
 
 app = FastAPI(title="Korean Word Chain Game API")
@@ -39,7 +41,12 @@ manager.llm_service = llm_service
 
 @app.websocket("/ws/stt")
 async def stt_endpoint(websocket: WebSocket):
-    await handle_stt_session(websocket, settings.deepgram_api_key)
+    if settings.vito_client_id and settings.vito_client_secret:
+        await handle_vito_session(websocket, settings.vito_client_id, settings.vito_client_secret)
+    elif settings.ncp_client_id and settings.ncp_client_secret:
+        await handle_clova_session(websocket, settings.ncp_client_id, settings.ncp_client_secret)
+    else:
+        await handle_deepgram_session(websocket, settings.deepgram_api_key)
 
 
 @app.websocket("/ws/{session_id}")

@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     anthropic_base_url: str = ""
     anthropic_model: str = "claude-haiku-4-5-20251001"
     deepgram_api_key: str = ""
+    ncp_client_id: str = ""
+    ncp_client_secret: str = ""
+    vito_client_id: str = ""
+    vito_client_secret: str = ""
     korean_dict_api_key: str = ""
     korean_dict_api_url: str = "https://stdict.korean.go.kr/api/search.do"
     timer_duration: int = 15
