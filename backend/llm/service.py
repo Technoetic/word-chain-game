@@ -1,6 +1,5 @@
 """LLM service for word chain game using Claude API."""
 
-import asyncio
 import anthropic
 from typing import AsyncGenerator
 
@@ -16,7 +15,7 @@ class LLMService:
         kwargs = {"api_key": api_key}
         if base_url:
             kwargs["base_url"] = base_url
-        self.client: anthropic.Anthropic = anthropic.Anthropic(**kwargs)
+        self.client: anthropic.AsyncAnthropic = anthropic.AsyncAnthropic(**kwargs)
 
     STREAM_TIMEOUT = 10  # seconds
 
@@ -27,26 +26,15 @@ class LLMService:
         system_prompt = PromptBuilder.build_system(difficulty)
         user_prompt = PromptBuilder.build_user(target_char, used_words, difficulty)
 
-        loop = asyncio.get_event_loop()
-
-        def _stream_sync():
-            chunks = []
-            with self.client.messages.stream(
-                model=self._model,
-                max_tokens=100,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}],
-            ) as stream:
-                for text in stream.text_stream:
-                    chunks.append(text)
-            return chunks
-
-        chunks = await asyncio.wait_for(
-            loop.run_in_executor(None, _stream_sync),
+        async with self.client.messages.stream(
+            model=self._model,
+            max_tokens=100,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}],
             timeout=self.STREAM_TIMEOUT,
-        )
-        for chunk in chunks:
-            yield chunk
+        ) as stream:
+            async for text in stream.text_stream:
+                yield text
 
     async def stream_reaction(
         self, user_word: str, target_char: str
@@ -64,26 +52,15 @@ class LLMService:
         )
         user_prompt = f"상대가 '{user_word}'을 말해서 '{target_char}'(으)로 이어야 해. 리액션해."
 
-        loop = asyncio.get_event_loop()
-
-        def _stream_sync():
-            chunks = []
-            with self.client.messages.stream(
-                model=self._model,
-                max_tokens=30,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}],
-            ) as stream:
-                for text in stream.text_stream:
-                    chunks.append(text)
-            return chunks
-
-        chunks = await asyncio.wait_for(
-            loop.run_in_executor(None, _stream_sync),
+        async with self.client.messages.stream(
+            model=self._model,
+            max_tokens=30,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}],
             timeout=self.STREAM_TIMEOUT,
-        )
-        for chunk in chunks:
-            yield chunk
+        ) as stream:
+            async for text in stream.text_stream:
+                yield text
 
     async def get_word(
         self, target_char: str, used_words: list[str], difficulty: str = "normal"
@@ -92,15 +69,10 @@ class LLMService:
         system_prompt = PromptBuilder.build_system(difficulty)
         user_prompt = PromptBuilder.build_user(target_char, used_words, difficulty)
 
-        loop = asyncio.get_event_loop()
-
-        def _create_sync():
-            message = self.client.messages.create(
-                model=self._model,
-                max_tokens=100,
-                system=system_prompt,
-                messages=[{"role": "user", "content": user_prompt}],
-            )
-            return message.content[0].text.strip()
-
-        return await loop.run_in_executor(None, _create_sync)
+        message = await self.client.messages.create(
+            model=self._model,
+            max_tokens=100,
+            system=system_prompt,
+            messages=[{"role": "user", "content": user_prompt}],
+        )
+        return message.content[0].text.strip()
