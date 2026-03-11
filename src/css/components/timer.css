@@ -13,33 +13,6 @@
   border: 2px solid var(--border-medium);
 }
 
-.timer__svg {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.timer__circle {
-  fill: none;
-  stroke: var(--timer-safe);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 251;
-  stroke-dashoffset: 0;
-  transition: all var(--transition-normal);
-}
-
-.timer--warn .timer__circle {
-  stroke: var(--timer-warn);
-  animation: timerPulse 1s ease-in-out infinite;
-}
-
-.timer--danger .timer__circle {
-  stroke: var(--timer-danger);
-  animation: timerPulse 0.5s ease-in-out infinite;
-}
-
 .timer__text {
   position: absolute;
   font-size: 28px;
@@ -119,7 +92,4 @@
     font-size: 20px;
   }
 
-  .timer__circle {
-    stroke-width: 1.5;
-  }
 }

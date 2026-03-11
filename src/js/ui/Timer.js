@@ -6,7 +6,6 @@ class Timer {
   constructor(elementSelector = '.timer') {
     this.element = document.querySelector(elementSelector);
     this.textEl = this.element.querySelector('.timer__text');
-    this.circleEl = this.element.querySelector('.timer__circle');
     this.duration = CONSTANTS.TIMER_DURATION || 15;
     this.remaining = this.duration;
     this._intervalId = null;
@@ -56,13 +55,7 @@ class Timer {
   }
 
   _updateDisplay() {
-    // Update text
     this.textEl.textContent = this.remaining;
-
-    // Update SVG circle dashoffset
-    const circumference = 2 * Math.PI * 45; // radius = 45
-    const offset = circumference * (1 - this.remaining / this.duration);
-    this.circleEl.style.strokeDashoffset = offset;
 
     // Apply color classes based on remaining time
     this.element.classList.remove('timer--danger', 'timer--warn', 'timer--safe');
