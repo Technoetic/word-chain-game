@@ -8,6 +8,7 @@ class WebSocketClient {
     this._maxReconnect = CONFIG.RECONNECT_MAX || 5;
     this._reconnectDelay = CONFIG.RECONNECT_DELAY || 1000;
     this._sessionId = null;
+    this._messageQueue = [];
   }
 
   connect(sessionId) {
@@ -20,6 +21,7 @@ class WebSocketClient {
         this.socket.onopen = () => {
           this.isConnected = true;
           this._reconnectAttempts = 0;
+          this._flushQueue();
           resolve();
         };
 
@@ -50,16 +52,21 @@ class WebSocketClient {
   }
 
   send(type, data = {}) {
+    const message = { type, ...data };
+
     if (!this.isConnected) {
+      this._messageQueue.push(message);
       return;
     }
 
-    const message = {
-      type,
-      ...data
-    };
-
     this.socket.send(JSON.stringify(message));
+  }
+
+  _flushQueue() {
+    while (this._messageQueue.length > 0) {
+      const msg = this._messageQueue.shift();
+      this.socket.send(JSON.stringify(msg));
+    }
   }
 
   on(type, handler) {
@@ -111,25 +118,24 @@ class WebSocketClient {
   }
 
   async _reconnect() {
-    if (this._reconnectAttempts >= this._maxReconnect) {
-      if (this._handlers['connection_failed']) {
-        this._handlers['connection_failed'].forEach((handler) => {
-          handler();
-        });
+    while (this._reconnectAttempts < this._maxReconnect) {
+      this._reconnectAttempts++;
+      const delay = this._reconnectDelay * Math.pow(2, this._reconnectAttempts - 1);
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+
+      try {
+        await this.connect(this._sessionId);
+        return;
+      } catch (error) {
+        console.error('Reconnection failed:', error);
       }
-      return;
     }
 
-    this._reconnectAttempts++;
-    const delay = this._reconnectDelay * Math.pow(2, this._reconnectAttempts - 1);
-
-    await new Promise((resolve) => setTimeout(resolve, delay));
-
-    try {
-      await this.connect(this._sessionId);
-    } catch (error) {
-      console.error('Reconnection failed:', error);
-      this._reconnect();
+    if (this._handlers['connection_failed']) {
+      this._handlers['connection_failed'].forEach((handler) => {
+        handler();
+      });
     }
   }
 

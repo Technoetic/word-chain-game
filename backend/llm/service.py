@@ -18,6 +18,8 @@ class LLMService:
             kwargs["base_url"] = base_url
         self.client: anthropic.Anthropic = anthropic.Anthropic(**kwargs)
 
+    STREAM_TIMEOUT = 10  # seconds
+
     async def stream_word(
         self, target_char: str, used_words: list[str], difficulty: str = "normal"
     ) -> AsyncGenerator[str, None]:
@@ -27,7 +29,6 @@ class LLMService:
 
         loop = asyncio.get_event_loop()
 
-        # Run blocking streaming call in executor
         def _stream_sync():
             chunks = []
             with self.client.messages.stream(
@@ -40,7 +41,10 @@ class LLMService:
                     chunks.append(text)
             return chunks
 
-        chunks = await loop.run_in_executor(None, _stream_sync)
+        chunks = await asyncio.wait_for(
+            loop.run_in_executor(None, _stream_sync),
+            timeout=self.STREAM_TIMEOUT,
+        )
         for chunk in chunks:
             yield chunk
 
@@ -74,7 +78,10 @@ class LLMService:
                     chunks.append(text)
             return chunks
 
-        chunks = await loop.run_in_executor(None, _stream_sync)
+        chunks = await asyncio.wait_for(
+            loop.run_in_executor(None, _stream_sync),
+            timeout=self.STREAM_TIMEOUT,
+        )
         for chunk in chunks:
             yield chunk
 

@@ -9,6 +9,7 @@ class STTController {
     this._onVolumeCallback = null;
     this._lastInterim = '';
     this._interimTimer = null;
+    this._submitting = false;
 
     if (this.isEnabled) {
       this.sttManager.onInterim((text) => this._onInterimResult(text));
@@ -39,6 +40,9 @@ class STTController {
   }
 
   _submitPendingInterim() {
+    if (this._submitting) return;
+    this._submitting = true;
+
     if (this._interimTimer) {
       clearTimeout(this._interimTimer);
       this._interimTimer = null;
@@ -48,6 +52,8 @@ class STTController {
       this._lastInterim = '';
       this._onFinalResult(text);
     }
+
+    this._submitting = false;
   }
 
   onInterimText(callback) {

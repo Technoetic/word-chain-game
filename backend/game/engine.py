@@ -1,3 +1,4 @@
+import asyncio
 from uuid import uuid4
 from typing import AsyncGenerator
 from backend.game.state import GameState
@@ -92,12 +93,13 @@ class GameEngine:
             "killer_word": killer,
         }
 
+    MAX_LLM_RETRIES = 5
+
     async def generate_llm_response(self, target_char: str) -> AsyncGenerator:
         dueum_chars = apply_dueum(target_char)
         search_char = dueum_chars[0] if isinstance(dueum_chars, list) else dueum_chars
 
-        # Keep retrying until 15s timeout (asyncio.wait_for in handlers.py)
-        while True:
+        for _attempt in range(self.MAX_LLM_RETRIES):
             collected_word = ""
             try:
                 yield {"type": "llm_typing", "char": "START"}
@@ -106,6 +108,8 @@ class GameEngine:
                 ):
                     collected_word += char
                     yield {"type": "llm_typing", "char": char}
+            except (asyncio.CancelledError, GeneratorExit):
+                raise
             except Exception:
                 continue
 
@@ -131,6 +135,10 @@ class GameEngine:
                 self.state.current_turn = "user"
                 yield {"type": "llm_complete", "word": llm_word}
                 return
+
+        # All retries exhausted — AI gives up
+        self.state.is_active = False
+        yield {"type": "game_over", "winner": "user", "reason": "AI가 단어를 찾지 못했습니다"}
 
     def end_game(self, reason: str) -> dict:
         self.state.is_active = False

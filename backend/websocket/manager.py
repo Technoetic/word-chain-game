@@ -21,7 +21,10 @@ class ConnectionManager:
 
     async def send(self, session_id: str, message: dict):
         if session_id in self.connections:
-            await self.connections[session_id].send_json(message)
+            try:
+                await self.connections[session_id].send_json(message)
+            except Exception:
+                await self.disconnect(session_id)
 
     def create_game(self, session_id: str, word_validator, llm_service):
         from backend.game.engine import GameEngine

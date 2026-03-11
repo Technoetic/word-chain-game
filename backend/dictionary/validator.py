@@ -56,8 +56,9 @@ class WordValidator:
         # Parse response
         result = self._parse_response(word, api_response)
 
-        # Cache result
-        self._cache.set(word, result)
+        # Don't cache API errors — they're transient
+        if result["reason"] != ValidationReason.API_ERROR.value:
+            self._cache.set(word, result)
 
         return result
 
@@ -71,13 +72,13 @@ class WordValidator:
         Returns:
             Validation result dict
         """
-        # Check for API error - allow word on API failure for playability
+        # API error — reject word rather than blindly accepting
         if "error" in api_response:
             return {
-                "valid": True,
-                "is_noun": True,
+                "valid": False,
+                "is_noun": False,
                 "reason": ValidationReason.API_ERROR.value,
-                "message": f"사전 확인 불가 (통과 처리)",
+                "message": "사전 API 오류 — 다시 시도해주세요",
             }
 
         # 표준국어대사전 API response format:

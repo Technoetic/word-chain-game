@@ -78,15 +78,18 @@ async def handle_stt_session(websocket: WebSocket, api_key: str):
         try:
             while True:
                 audio_data = await websocket.receive_bytes()
-                await dg_ws.send(audio_data)
+                try:
+                    await dg_ws.send(audio_data)
+                except websockets.exceptions.ConnectionClosed:
+                    break
         except WebSocketDisconnect:
             pass
-
-        reader_task.cancel()
-        try:
-            await reader_task
-        except asyncio.CancelledError:
-            pass
+        finally:
+            reader_task.cancel()
+            try:
+                await reader_task
+            except asyncio.CancelledError:
+                pass
 
     except Exception as e:
         print(f"[STT] Connection error: {e}")
