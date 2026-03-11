@@ -3,7 +3,7 @@ const CONSTANTS = {
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
     return `${proto}//${location.host}/ws/`;
   })(),
-  TIMER_DURATION: 15,
+  TIMER_DURATION: 30,
   MAX_COMBO: 5,
   MSG_TYPES: {
     GAME_START: 'game_start',
