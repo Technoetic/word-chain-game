@@ -31,6 +31,7 @@ class WordValidator:
         # Check cache first
         cached = self._cache.get(word)
         if cached is not None:
+            print(f"[Validator] '{word}' → cache hit: {cached['reason']}")
             return cached
 
         # Local dictionary first (instant, no network)
@@ -42,7 +43,10 @@ class WordValidator:
                 "message": f"'{word}'은(는) 유효한 명사입니다.",
             }
             self._cache.set(word, result)
+            print(f"[Validator] '{word}' → local dict: VALID")
             return result
+
+        print(f"[Validator] '{word}' → not in local dict, trying API...")
 
         # Not in local dict → try API as fallback
         try:
@@ -50,9 +54,12 @@ class WordValidator:
             if api_response and "error" not in api_response:
                 result = self._parse_api_response(word, api_response)
                 self._cache.set(word, result)
+                print(f"[Validator] '{word}' → API: {result['reason']}")
                 return result
-        except Exception:
-            pass
+            else:
+                print(f"[Validator] '{word}' → API error: {api_response}")
+        except Exception as e:
+            print(f"[Validator] '{word}' → API exception: {e}")
 
         # Neither local nor API found it
         result = {
@@ -62,6 +69,7 @@ class WordValidator:
             "message": "사전에 없는 단어",
         }
         self._cache.set(word, result)
+        print(f"[Validator] '{word}' → NOT_IN_DICT (final)")
         return result
 
     def _parse_api_response(self, word: str, api_response: dict) -> dict:
