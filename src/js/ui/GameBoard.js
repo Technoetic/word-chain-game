@@ -71,11 +71,9 @@ class GameBoard {
       this.timer.start();
     });
 
-    // Timer expired — only send on user turn (AI timeout handled by backend)
+    // Timer expired — send regardless of whose turn
     this.timer.onExpired(() => {
-      if (!this._llmTyping) {
-        this.eventBus.emit('timer_expired', {});
-      }
+      this.eventBus.emit('timer_expired', {});
     });
 
     this.eventBus.on('word_result', (data) => {

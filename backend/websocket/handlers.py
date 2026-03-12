@@ -5,7 +5,7 @@ from backend.websocket.messages import (
     ErrorMsg,
 )
 
-LLM_TIMEOUT = 30  # seconds
+LLM_TIMEOUT = 120  # seconds — enough for 10 retries
 
 
 async def handle_message(websocket: WebSocket, data: Dict, manager, session_id: str):
@@ -72,12 +72,17 @@ async def handle_word_submit(
                 async def _stream_llm():
                     async for response in game.generate_llm_response(target_char):
                         await manager.send(session_id, response)
+                        if response.get("type") == "game_over":
+                            print(f"[Game] game_over sent via retry exhaust: {response}")
 
                 await asyncio.wait_for(_stream_llm(), timeout=LLM_TIMEOUT)
             except asyncio.TimeoutError:
+                print(f"[Game] LLM timeout after {LLM_TIMEOUT}s")
                 game.state.is_active = False
                 game.state.current_turn = "llm"
-                await manager.send(session_id, game.end_game("AI 시간 초과"))
+                result = game.end_game("AI 시간 초과")
+                print(f"[Game] sending timeout game_over: {result}")
+                await manager.send(session_id, result)
     except Exception as e:
         error_msg = ErrorMsg(message=f"Error processing word: {str(e)}")
         await manager.send(session_id, error_msg.model_dump())

@@ -102,6 +102,7 @@ class GameEngine:
         for _attempt in range(self.MAX_LLM_RETRIES):
             collected_word = ""
             try:
+                print(f"[LLM] attempt {_attempt+1}/{self.MAX_LLM_RETRIES} for '{search_char}'")
                 yield {"type": "llm_typing", "char": "START"}
                 async for char in self.llm_service.stream_word(
                     search_char, self.state.used_words, self.state.difficulty
@@ -110,15 +111,19 @@ class GameEngine:
                     yield {"type": "llm_typing", "char": char}
             except (asyncio.CancelledError, GeneratorExit):
                 raise
-            except Exception:
+            except Exception as e:
+                print(f"[LLM] attempt {_attempt+1} stream error: {e}")
                 continue
 
             llm_word = collected_word.strip()
+            print(f"[LLM] attempt {_attempt+1} got: '{llm_word}'")
 
             if not llm_word or llm_word in self.state.used_words:
+                print(f"[LLM] attempt {_attempt+1} rejected: empty or already used")
                 continue
 
             if not is_valid_chain(self.state.last_word, llm_word):
+                print(f"[LLM] attempt {_attempt+1} rejected: invalid chain")
                 continue
 
             validation = await self.word_validator.validate(llm_word)
@@ -133,10 +138,14 @@ class GameEngine:
                 self.state.last_word = llm_word
                 self.state.turn_count += 1
                 self.state.current_turn = "user"
+                print(f"[LLM] success: '{llm_word}'")
                 yield {"type": "llm_complete", "word": llm_word}
                 return
+            else:
+                print(f"[LLM] attempt {_attempt+1} rejected: validation failed")
 
         # All retries exhausted — AI gives up
+        print(f"[LLM] all {self.MAX_LLM_RETRIES} retries exhausted, AI loses")
         self.state.is_active = False
         yield {"type": "game_over", "winner": "user", "reason": "AI가 단어를 찾지 못했습니다"}
 
