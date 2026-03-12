@@ -82,6 +82,9 @@ class GameEngine {
         isUser: true
       });
     } else {
+      // Server rejected — rollback optimistic state
+      this.state.removeWord(data.word);
+      this.state.isUserTurn = true;
       this.eventBus.emit('word:rejected', {
         word: data.word,
         reason: data.reason

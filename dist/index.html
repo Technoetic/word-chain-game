@@ -1539,6 +1539,11 @@ class GameState {
     this.turnCount += 1;
   }
 
+  removeWord(word) {
+    this.usedWords.delete(word.toLowerCase());
+    this.turnCount = Math.max(0, this.turnCount - 1);
+  }
+
   hasWord(word) {
     return this.usedWords.has(word.toLowerCase());
   }
@@ -1630,6 +1635,9 @@ class GameEngine {
         isUser: true
       });
     } else {
+      // Server rejected — rollback optimistic state
+      this.state.removeWord(data.word);
+      this.state.isUserTurn = true;
       this.eventBus.emit('word:rejected', {
         word: data.word,
         reason: data.reason

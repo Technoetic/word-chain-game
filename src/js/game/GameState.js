@@ -22,6 +22,11 @@ class GameState {
     this.turnCount += 1;
   }
 
+  removeWord(word) {
+    this.usedWords.delete(word.toLowerCase());
+    this.turnCount = Math.max(0, this.turnCount - 1);
+  }
+
   hasWord(word) {
     return this.usedWords.has(word.toLowerCase());
   }
