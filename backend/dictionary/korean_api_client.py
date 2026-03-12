@@ -51,21 +51,28 @@ class KoreanAPIClient:
             "method": "exact",
         }
 
-        try:
-            async with session.get(
-                self._base_url, params=params, timeout=aiohttp.ClientTimeout(total=10)
-            ) as response:
-                if response.status == 200:
-                    data = await response.json(content_type=None)
-                    return data
-                else:
-                    return {"error": f"API returned status {response.status}"}
-        except aiohttp.ClientError as e:
-            return {"error": f"API request failed: {str(e)}"}
-        except json.JSONDecodeError as e:
-            return {"error": f"Failed to parse API response: {str(e)}"}
-        except Exception as e:
-            return {"error": f"Unexpected error: {str(e)}"}
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                async with session.get(
+                    self._base_url, params=params, timeout=aiohttp.ClientTimeout(total=5)
+                ) as response:
+                    if response.status == 200:
+                        data = await response.json(content_type=None)
+                        return data
+                    else:
+                        if attempt < max_retries - 1:
+                            continue
+                        return {"error": f"API returned status {response.status}"}
+            except (aiohttp.ClientError, json.JSONDecodeError) as e:
+                if attempt < max_retries - 1:
+                    continue
+                return {"error": f"API request failed: {str(e)}"}
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    continue
+                return {"error": f"Unexpected error: {str(e)}"}
+        return {"error": "Max retries exceeded"}
 
     async def close(self) -> None:
         """Close aiohttp session."""
