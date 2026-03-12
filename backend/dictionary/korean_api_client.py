@@ -29,9 +29,32 @@ class KoreanAPIClient:
         Returns:
             aiohttp.ClientSession instance
         """
-        if self._session is None:
-            self._session = aiohttp.ClientSession()
+        if self._session is None or self._session.closed:
+            connector = aiohttp.TCPConnector(
+                limit=10,
+                ttl_dns_cache=300,
+                keepalive_timeout=60,
+            )
+            self._session = aiohttp.ClientSession(connector=connector)
         return self._session
+
+    async def warmup(self) -> None:
+        """Pre-warm the session by making a test API call."""
+        try:
+            session = await self._get_session()
+            params = {
+                "key": self._api_key,
+                "q": "사과",
+                "req_type": "json",
+                "method": "exact",
+            }
+            async with session.get(
+                self._base_url, params=params, timeout=aiohttp.ClientTimeout(total=10)
+            ) as response:
+                await response.read()
+                print(f"[Dict API] warmup complete (status={response.status})")
+        except Exception as e:
+            print(f"[Dict API] warmup failed (non-fatal): {e}")
 
     async def search(self, word: str) -> dict:
         """Search for word in Korean dictionary.
@@ -54,8 +77,9 @@ class KoreanAPIClient:
         max_retries = 3
         for attempt in range(max_retries):
             try:
+                timeout_sec = 10 if attempt == 0 else 5
                 async with session.get(
-                    self._base_url, params=params, timeout=aiohttp.ClientTimeout(total=5)
+                    self._base_url, params=params, timeout=aiohttp.ClientTimeout(total=timeout_sec)
                 ) as response:
                     if response.status == 200:
                         data = await response.json(content_type=None)

@@ -76,7 +76,13 @@ async def serve_index():
     return FileResponse(DIST_DIR / "index.html")
 
 
+@app.on_event("startup")
+async def startup_event():
+    await korean_api_client.warmup()
+
+
 @app.on_event("shutdown")
 async def shutdown_event():
+    await korean_api_client.close()
     for session_id in list(manager.connections.keys()):
         await manager.disconnect(session_id)
