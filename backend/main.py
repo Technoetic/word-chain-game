@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from backend.websocket.manager import ConnectionManager
 from backend.websocket.handlers import handle_message
@@ -13,6 +13,7 @@ from backend.llm.service import LLMService
 from backend.stt.deepgram_proxy import handle_stt_session as handle_deepgram_session
 from backend.stt.clova_stt import handle_stt_session as handle_clova_session
 from backend.stt.vito_proxy import handle_stt_session as handle_vito_session
+from backend.tts.clova_tts import synthesize as clova_synthesize
 from backend.utils.config import Settings
 
 app = FastAPI(title="Korean Word Chain Game API")
@@ -61,6 +62,20 @@ async def websocket_endpoint(websocket: WebSocket, session_id: str):
     except Exception as e:
         print(f"WebSocket error: {str(e)}")
         await manager.disconnect(session_id)
+
+
+@app.get("/api/tts")
+async def tts_endpoint(text: str = Query(..., max_length=200)):
+    if not settings.ncp_client_id or not settings.ncp_client_secret:
+        return Response(status_code=503, content="TTS not configured")
+    try:
+        audio = await clova_synthesize(
+            text, settings.ncp_client_id, settings.ncp_client_secret
+        )
+        return Response(content=audio, media_type="audio/mpeg")
+    except Exception as e:
+        print(f"[TTS] error: {e}")
+        return Response(status_code=500, content=str(e))
 
 
 @app.get("/api/health")

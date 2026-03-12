@@ -126,6 +126,7 @@ class GameBoard {
       const { word } = data;
       this._llmTyping = false;
       this.wordHistory.finalizeLLMWord(word);
+      this._speakWord(word);
       this.timer.reset();
       this.timer.start();
     });
@@ -140,6 +141,21 @@ class GameBoard {
       const { message } = data;
       this.showError(message);
     });
+  }
+
+  _speakWord(word) {
+    fetch(`/api/tts?text=${encodeURIComponent(word)}`)
+      .then(res => {
+        if (!res.ok) throw new Error('TTS failed');
+        return res.blob();
+      })
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const audio = new Audio(url);
+        audio.onended = () => URL.revokeObjectURL(url);
+        audio.play().catch(() => {});
+      })
+      .catch(() => {});
   }
 
   resetUI() {
