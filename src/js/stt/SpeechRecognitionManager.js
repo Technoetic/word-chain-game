@@ -96,7 +96,7 @@ class SpeechRecognitionManager {
     });
 
     const source = this._audioContext.createMediaStreamSource(this._mediaStream);
-    this._processor = this._audioContext.createScriptProcessor(4096, 1, 1);
+    this._processor = this._audioContext.createScriptProcessor(2048, 1, 1);
 
     // Volume analyser
     this._analyser = this._audioContext.createAnalyser();

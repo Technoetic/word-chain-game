@@ -41,8 +41,8 @@ async def handle_stt_session(websocket: WebSocket, client_id: str, client_secret
     params = (
         "?sample_rate=16000"
         "&encoding=LINEAR16"
-        "&use_itn=true"
-        "&use_disfluency_filter=true"
+        "&use_itn=false"
+        "&use_disfluency_filter=false"
         "&use_profanity_filter=false"
     )
 

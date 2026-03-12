@@ -88,7 +88,7 @@ class STTController {
       }
       this._interimTimer = setTimeout(() => {
         this._submitPendingInterim();
-      }, 1200);
+      }, 800);
     }
 
     if (this._onInterimCallback) {
@@ -105,6 +105,11 @@ class STTController {
       clearTimeout(this._interimTimer);
       this._interimTimer = null;
     }
+
+    // Extract Korean characters only
+    const korean = text.replace(/[^가-힣]/g, '');
+    if (!korean) return;
+    text = korean;
 
     if (this._onFinalCallback) {
       this._onFinalCallback(text);
