@@ -4,6 +4,7 @@ from enum import Enum
 
 from .cache import WordCache
 from .korean_api_client import KoreanAPIClient
+from .fallback_dict import is_known_noun
 
 
 class ValidationReason(Enum):
@@ -72,13 +73,20 @@ class WordValidator:
         Returns:
             Validation result dict
         """
-        # API error — reject word rather than blindly accepting
+        # API error — fallback to local dictionary
         if "error" in api_response:
+            if is_known_noun(word):
+                return {
+                    "valid": True,
+                    "is_noun": True,
+                    "reason": ValidationReason.VALID.value,
+                    "message": f"'{word}'은(는) 유효한 명사입니다. (로컬 사전)",
+                }
             return {
                 "valid": False,
                 "is_noun": False,
                 "reason": ValidationReason.API_ERROR.value,
-                "message": "사전 API 오류 — 다시 시도해주세요",
+                "message": "사전에 없는 단어",
             }
 
         # 표준국어대사전 API response format:
