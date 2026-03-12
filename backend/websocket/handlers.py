@@ -60,7 +60,7 @@ async def handle_word_submit(
                 try:
                     await manager.send(session_id, {"type": "ai_reaction", "char": "START"})
                     async for chunk in manager.llm_service.stream_reaction(
-                        result["word"], target_char
+                        result["word"], target_char, result.get("killer_count", 1)
                     ):
                         await manager.send(session_id, {"type": "ai_reaction", "char": chunk})
                 except Exception as e:

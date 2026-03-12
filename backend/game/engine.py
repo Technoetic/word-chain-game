@@ -84,6 +84,8 @@ class GameEngine:
 
         last_char = word[-1]
         killer = is_killer_char(last_char)
+        if killer:
+            self.state.killer_count += 1
 
         return {
             "type": "word_result",
@@ -91,6 +93,7 @@ class GameEngine:
             "word": word,
             "message": "Valid word",
             "killer_word": killer,
+            "killer_count": self.state.killer_count,
         }
 
     MAX_LLM_RETRIES = 10
@@ -105,7 +108,8 @@ class GameEngine:
                 print(f"[LLM] attempt {_attempt+1}/{self.MAX_LLM_RETRIES} for '{search_char}'")
                 yield {"type": "llm_typing", "char": "START"}
                 async for char in self.llm_service.stream_word(
-                    search_char, self.state.used_words, self.state.difficulty
+                    search_char, self.state.used_words, self.state.difficulty,
+                    revenge=(self.state.killer_count > 0)
                 ):
                     collected_word += char
                     yield {"type": "llm_typing", "char": char}

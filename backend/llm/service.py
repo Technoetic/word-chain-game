@@ -20,10 +20,11 @@ class LLMService:
     STREAM_TIMEOUT = 10  # seconds
 
     async def stream_word(
-        self, target_char: str, used_words: list[str], difficulty: str = "normal"
+        self, target_char: str, used_words: list[str], difficulty: str = "normal",
+        revenge: bool = False
     ) -> AsyncGenerator[str, None]:
         """Stream word generation from Claude, yielding character deltas."""
-        system_prompt = PromptBuilder.build_system(difficulty)
+        system_prompt = PromptBuilder.build_system(difficulty, revenge=revenge)
         user_prompt = PromptBuilder.build_user(target_char, used_words, difficulty)
 
         async with self.client.messages.stream(
@@ -37,20 +38,30 @@ class LLMService:
                 yield text
 
     async def stream_reaction(
-        self, user_word: str, target_char: str
+        self, user_word: str, target_char: str, killer_count: int = 1
     ) -> AsyncGenerator[str, None]:
-        """Stream a short frustrated reaction when user plays a killer word."""
+        """Stream a frustrated reaction when user plays a killer word."""
+        if killer_count >= 3:
+            mood = "극대노. 복수를 다짐하며 분노 폭발. 살벌하게."
+            examples = "'야 진짜 죽을래?', '나 진심 열받네 두고봐', '복수한다 진짜로'"
+        elif killer_count >= 2:
+            mood = "화남. 복수를 선언하며 짜증."
+            examples = "'또? 야 나도 안봐준다', '다음엔 각오해', 'ㅋㅋ 복수할거임'"
+        else:
+            mood = "짜증. 가볍게 투덜거림."
+            examples = "'ㅋㅋ 미쳤냐', '아 ㅅㅂ', '야 그건 좀...', '와 개사기'"
+
         system_prompt = (
-            "너는 끝말잇기 AI 플레이어야. 상대가 한방 단어를 써서 "
-            "이을 수 없는 글자를 줬어. 짧게 욕/짜증 리액션을 해. "
-            "규칙:\n"
-            "- 반말, 인터넷 말투 사용\n"
-            "- 10자 이내로 매우 짧게\n"
-            "- 이모지 금지\n"
-            "- 예시: 'ㅋㅋ 미쳤냐', '아 ㅅㅂ', '야 그건 좀...', 'ㄹㅇ 어쩌라고'\n"
-            "- 단어만 출력, 설명 금지"
+            f"너는 끝말잇기 AI 플레이어야. 상대가 한방 단어를 써서 "
+            f"이을 수 없는 글자를 줬어. 현재 감정: {mood}\n"
+            f"규칙:\n"
+            f"- 반말, 인터넷 말투 사용\n"
+            f"- 15자 이내로 짧게\n"
+            f"- 이모지 금지\n"
+            f"- 예시: {examples}\n"
+            f"- 리액션만 출력, 설명 금지"
         )
-        user_prompt = f"상대가 '{user_word}'을 말해서 '{target_char}'(으)로 이어야 해. 리액션해."
+        user_prompt = f"상대가 '{user_word}'을 말해서 '{target_char}'(으)로 이어야 해. 한방 단어 {killer_count}번째 당함. 리액션해."
 
         async with self.client.messages.stream(
             model=self._model,

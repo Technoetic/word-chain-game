@@ -10,6 +10,7 @@ class GameState(BaseModel):
     is_active: bool = False
     difficulty: str = "normal"
     current_turn: str = "user"  # "user" or "llm"
+    killer_count: int = 0  # how many killer words user has played
 
 
 class WordResult(BaseModel):
