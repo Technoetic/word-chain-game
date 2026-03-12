@@ -6,7 +6,6 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from backend.websocket.manager import ConnectionManager
 from backend.websocket.handlers import handle_message
-from backend.dictionary.korean_api_client import KoreanAPIClient
 from backend.dictionary.cache import WordCache
 from backend.dictionary.validator import WordValidator
 from backend.llm.service import LLMService
@@ -30,8 +29,7 @@ manager = ConnectionManager()
 settings = Settings()
 
 word_cache = WordCache()
-korean_api_client = KoreanAPIClient(settings.korean_dict_api_key)
-word_validator = WordValidator(korean_api_client, word_cache)
+word_validator = WordValidator(cache=word_cache)
 
 llm_service = LLMService(settings.anthropic_api_key, base_url=settings.anthropic_base_url)
 
@@ -76,13 +74,7 @@ async def serve_index():
     return FileResponse(DIST_DIR / "index.html")
 
 
-@app.on_event("startup")
-async def startup_event():
-    await korean_api_client.warmup()
-
-
 @app.on_event("shutdown")
 async def shutdown_event():
-    await korean_api_client.close()
     for session_id in list(manager.connections.keys()):
         await manager.disconnect(session_id)
