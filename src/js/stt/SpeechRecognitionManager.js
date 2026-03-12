@@ -68,19 +68,21 @@ class SpeechRecognitionManager {
       };
 
       this._sttSocket.onerror = () => {
-        if (this._callbacks.onError) {
-          this._callbacks.onError('stt-connection-error');
-        }
-        this.stop();
+        console.warn('[STT] connection error, will auto-restart');
+        this._cleanup();
+        this.isListening = false;
+        this._autoRestart();
       };
 
       this._sttSocket.onclose = () => {
         if (this.isListening) {
+          console.warn('[STT] connection closed, will auto-restart');
           this._cleanup();
           this.isListening = false;
           if (this._callbacks.onStateChange) {
             this._callbacks.onStateChange(false);
           }
+          this._autoRestart();
         }
       };
     } catch (err) {
@@ -122,6 +124,10 @@ class SpeechRecognitionManager {
   }
 
   stop() {
+    if (this._restartTimer) {
+      clearTimeout(this._restartTimer);
+      this._restartTimer = null;
+    }
     this._cleanup();
     this.isListening = false;
     if (this._callbacks.onStateChange) {
@@ -204,5 +210,14 @@ class SpeechRecognitionManager {
 
   onUtteranceEnd(callback) {
     this._callbacks.onUtteranceEnd = callback;
+  }
+
+  _autoRestart() {
+    if (this._restartTimer) return;
+    this._restartTimer = setTimeout(() => {
+      this._restartTimer = null;
+      console.log('[STT] auto-restarting...');
+      this.start();
+    }, 1000);
   }
 }
