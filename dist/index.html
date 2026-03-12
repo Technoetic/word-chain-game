@@ -2904,18 +2904,11 @@ class GameBoard {
   }
 
   _speakWord(word) {
-    fetch(`/api/tts?text=${encodeURIComponent(word)}`)
-      .then(res => {
-        if (!res.ok) throw new Error('TTS failed');
-        return res.blob();
-      })
-      .then(blob => {
-        const url = URL.createObjectURL(blob);
-        const audio = new Audio(url);
-        audio.onended = () => URL.revokeObjectURL(url);
-        audio.play().catch(() => {});
-      })
-      .catch(() => {});
+    if (!window.speechSynthesis) return;
+    const utterance = new SpeechSynthesisUtterance(word);
+    utterance.lang = 'ko-KR';
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
   }
 
   resetUI() {
